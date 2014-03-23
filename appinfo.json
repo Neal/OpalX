@@ -1,0 +1,22 @@
+{
+	"uuid": "4374f02e-fc9d-4413-ab2c-726eea2a1486",
+	"shortName": "PebbLIFX",
+	"longName": "PebbLIFX",
+	"companyName": "Neal",
+	"versionCode": 1,
+	"versionLabel": "0.1",
+	"capabilities": [ "configurable" ],
+	"watchapp": {
+		"watchface": false
+	},
+	"appKeys": {
+		"index": 0,
+		"label": 1,
+		"color": 2,
+		"state": 3,
+		"error": 4
+	},
+	"resources": {
+		"media": []
+	}
+}
