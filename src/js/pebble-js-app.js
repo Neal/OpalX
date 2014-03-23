@@ -53,7 +53,7 @@ var LIFX = {
 	toggle: function(index) {
 		if (!this.server) return this.error('no_server_set');
 		var xhr = new XMLHttpRequest();
-		xhr.open('PUT', 'http://' + this.server + ':3000/' + encodeURIComponent(this.devices[index].id) + '/toggle.json', true);
+		xhr.open('PUT', 'http://' + this.server + ':3000/lights/' + encodeURIComponent(this.devices[index].id) + '/toggle.json', true);
 		xhr.onload = function() {
 			appMessageQueue.clear();
 			try {
