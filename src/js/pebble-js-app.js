@@ -59,7 +59,7 @@ var LIFX = {
 			try {
 				var res = JSON.parse(xhr.responseText);
 				console.log('toggle: ' + JSON.stringify(res));
-				var label = res.label.substring(0,32) || res.id.substring(0,32) || '';
+				var label = res.label ? res.label.substring(0,32) : res.id.substring(0,32);
 				var color = LIFX.makeColor(res.color) || '';
 				var state = res.on ? 'ON' : 'OFF';
 				appMessageQueue.add({index:index, label:label, color:color, state:state});
@@ -86,7 +86,7 @@ var LIFX = {
 				var res = JSON.parse(xhr.responseText);
 				var i = 0;
 				for (var r in res) {
-					var label = res[r].label.substring(0,32) || res[r].id.substring(0,32) || '';
+					var label = res[r].label ? res[r].label.substring(0,32) : res[r].id.substring(0,32);
 					var color = LIFX.makeColor(res[r].color) || '';
 					var state = res[r].on ? 'ON' : 'OFF';
 					appMessageQueue.add({index:i++, label:label, color:color, state:state});
