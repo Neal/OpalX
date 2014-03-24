@@ -73,7 +73,47 @@ var LIFX = {
 	},
 
 	getSelector: function(index) {
+		if (index == 29) return 'all';
 		return this.lights[index].id;
+	},
+
+	handleResponse: function(xhr, index) {
+		appMessageQueue.clear();
+		try {
+			var res = JSON.parse(xhr.responseText);
+			if (res instanceof Array) {
+				LIFX.lights = [];
+				var i = 0;
+				for (var r in res) {
+					label = res[r].label ? res[r].label.substring(0,32) : res[r].id.substring(0,32);
+					state = res[r].on ? 'ON' : 'OFF';
+					color_h = LIFX.colors.hue.toFake(res[r].color.hue) || 0;
+					color_s = LIFX.colors.saturation.toFake(res[r].color.saturation) || 0;
+					color_b = LIFX.colors.brightness.toFake(res[r].color.brightness) || 0;
+					appMessageQueue.add({index:i++, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
+					LIFX.lights.push(res[r]);
+				}
+				appMessageQueue.add({index:i});
+			} else {
+				label = res.label ? res.label.substring(0,32) : res.id.substring(0,32);
+				state = res.on ? 'ON' : 'OFF';
+				color_h = LIFX.colors.hue.toFake(res.color.hue) || 0;
+				color_s = LIFX.colors.saturation.toFake(res.color.saturation) || 0;
+				color_b = LIFX.colors.brightness.toFake(res.color.brightness) || 0;
+				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
+				appMessageQueue.add({index:LIFX.lights.length});
+			}
+		} catch(e) {
+			console.log(JSON.stringify(e));
+			try {
+				var label = LIFX.lights[index].label ? LIFX.lights[index].label.substring(0,32) : LIFX.lights[index].id.substring(0,32);
+				appMessageQueue.add({index:index, label:label, state:'Err'});
+				appMessageQueue.add({index:LIFX.lights.length});
+			} catch(ee) {
+				appMessageQueue.add({error:'server_error'});
+			}
+		}
+		appMessageQueue.send();
 	},
 
 	color: function(index, hue, saturation, brightness) {
@@ -81,22 +121,7 @@ var LIFX = {
 		var data = {hue:LIFX.colors.hue.toReal(hue), saturation:LIFX.colors.saturation.toReal(saturation), brightness:LIFX.colors.brightness.toReal(brightness)};
 		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/color.json';
 		LIFX.http.makeRequest('PUT', url, JSON.stringify(data), function(xhr) {
-			appMessageQueue.clear();
-			try {
-				var res = JSON.parse(xhr.responseText);
-				var label = res.label ? res.label.substring(0,32) : res.id.substring(0,32);
-				var state = res.on ? 'ON' : 'OFF';
-				var color_h = LIFX.colors.hue.toFake(res.color.hue) || 0;
-				var color_s = LIFX.colors.saturation.toFake(res.color.saturation) || 0;
-				var color_b = LIFX.colors.brightness.toFake(res.color.brightness) || 0;
-				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
-				appMessageQueue.add({index:LIFX.lights.length});
-			} catch(e) {
-				var label = LIFX.lights[index].label ? LIFX.lights[index].label.substring(0,32) : LIFX.lights[index].id.substring(0,32);
-				appMessageQueue.add({index:index, label:label, state:'Err'});
-				appMessageQueue.add({index:LIFX.lights.length});
-			}
-			appMessageQueue.send();
+			LIFX.handleResponse(xhr, index);
 		}, function(e) {
 			LIFX.error(e);
 		});
@@ -106,22 +131,7 @@ var LIFX = {
 		if (!this.server) return this.error('no_server_set');
 		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/toggle.json';
 		LIFX.http.makeRequest('PUT', url, null, function(xhr) {
-			appMessageQueue.clear();
-			try {
-				var res = JSON.parse(xhr.responseText);
-				var label = res.label ? res.label.substring(0,32) : res.id.substring(0,32);
-				var state = res.on ? 'ON' : 'OFF';
-				var color_h = LIFX.colors.hue.toFake(res.color.hue) || 0;
-				var color_s = LIFX.colors.saturation.toFake(res.color.saturation) || 0;
-				var color_b = LIFX.colors.brightness.toFake(res.color.brightness) || 0;
-				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
-				appMessageQueue.add({index:LIFX.lights.length});
-			} catch(e) {
-				var label = LIFX.lights[index].label ? LIFX.lights[index].label.substring(0,32) : LIFX.lights[index].id.substring(0,32);
-				appMessageQueue.add({index:index, label:label, state:'Err'});
-				appMessageQueue.add({index:LIFX.lights.length});
-			}
-			appMessageQueue.send();
+			LIFX.handleResponse(xhr, index);
 		}, function(e) {
 			LIFX.error(e);
 		});
@@ -132,28 +142,10 @@ var LIFX = {
 		this.lights = [];
 		var url = this.server + '/lights.json';
 		LIFX.http.makeRequest('GET', url, null, function(xhr) {
-			appMessageQueue.clear();
-			try {
-				var res = JSON.parse(xhr.responseText);
-				var i = 0;
-				for (var r in res) {
-					var label = res[r].label ? res[r].label.substring(0,32) : res[r].id.substring(0,32);
-					var state = res[r].on ? 'ON' : 'OFF';
-					var color_h = LIFX.colors.hue.toFake(res[r].color.hue) || 0;
-					var color_s = LIFX.colors.saturation.toFake(res[r].color.saturation) || 0;
-					var color_b = LIFX.colors.brightness.toFake(res[r].color.brightness) || 0;
-					appMessageQueue.add({index:i++, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
-					LIFX.lights.push(res[r]);
-				}
-				appMessageQueue.add({index:i});
-			} catch(e) {
-				appMessageQueue.add({error:'server_error'});
-			}
-			appMessageQueue.send();
+			LIFX.handleResponse(xhr);
 		}, function(e) {
 			LIFX.error(e);
 		});
-		this.lights[29] = {id:'all', label:'All Devices'};
 	},
 
 	http: {
