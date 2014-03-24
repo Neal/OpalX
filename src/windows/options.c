@@ -5,6 +5,7 @@
 #include "lights.h"
 #include "colors_custom.h"
 #include "colors_default.h"
+#include "colors_manual.h"
 
 #define MENU_NUM_SECTIONS 3
 
@@ -63,6 +64,7 @@ void options_init(void) {
 void options_destroy(void) {
 	colors_custom_destroy();
 	colors_default_destroy();
+	colors_manual_destroy();
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
 }
@@ -225,6 +227,7 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 					colors_default_init();
 					break;
 				case MENU_ROW_COLORS_MANUAL:
+					colors_manual_init();
 					break;
 			}
 			break;
