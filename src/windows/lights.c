@@ -4,11 +4,17 @@
 #include "../common.h"
 #include "options.h"
 
+#define MENU_NUM_SECTIONS 2
+
+#define MENU_SECTION_ALL 0
+#define MENU_SECTION_LIST 1
+
+#define MENU_SECTION_ROWS_ALL 1
+
 #define MAX_LIGHTS 30
 
 static Light lights[MAX_LIGHTS];
 
-static void refresh();
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
 static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
@@ -111,75 +117,110 @@ Light* light() {
 	return &lights[selected_index];
 }
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
-
-static void refresh() {
-	memset(lights, 0x0, sizeof(lights));
-	num_lights = 0;
-	no_server = false;
-	no_lights = false;
-	out_failed = false;
-	conn_timeout = false;
-	conn_error = false;
-	server_error = false;
-	menu_layer_set_selected_index(menu_layer, (MenuIndex) { .row = 0, .section = 0 }, MenuRowAlignBottom, false);
+void toggle_light() {
+	strncpy(light()->state, "...", sizeof(light()->state) - 1);
 	menu_layer_reload_data_and_mark_dirty(menu_layer);
+	Tuplet index_tuple = TupletInteger(KEY_INDEX, light()->index);
+	DictionaryIterator *iter;
+	app_message_outbox_begin(&iter);
+	if (iter == NULL)
+		return;
+	dict_write_tuplet(iter, &index_tuple);
+	dict_write_end(iter);
 	app_message_outbox_send();
 }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
+
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {
-	return 1;
+	return MENU_NUM_SECTIONS;
 }
 
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
-	return num_lights ? num_lights : 1;
+	switch (section_index) {
+		case MENU_SECTION_ALL:
+			return MENU_SECTION_ROWS_ALL;
+		case MENU_SECTION_LIST:
+			return num_lights ? num_lights : 1;
+		default:
+			return 0;
+	}
 }
 
 static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
-	return MENU_CELL_BASIC_HEADER_HEIGHT;
+	switch (section_index) {
+		case MENU_SECTION_ALL:
+			return MENU_CELL_BASIC_HEADER_HEIGHT;
+		case MENU_SECTION_LIST:
+			return 1; // this should be 0 but MenuLayer breaks if we set it to 0. <<< TODO
+		default:
+			return 0;
+	}
 }
 
 static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-	if (out_failed || no_server || no_lights || conn_timeout || conn_error || num_lights == 0) {
-		return 36;
+	switch (cell_index->section) {
+		case MENU_SECTION_ALL:
+			return 30;
+		case MENU_SECTION_LIST:
+			return 30;
+		default:
+			return 0;
 	}
-	return 50;
 }
 
 static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
-	menu_cell_basic_header_draw(ctx, cell_layer, "PebbLIFX");
+	switch (section_index) {
+		case MENU_SECTION_ALL:
+			menu_cell_basic_header_draw(ctx, cell_layer, "PebbLIFX");
+			break;
+	}
 }
 
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
 	graphics_context_set_text_color(ctx, GColorBlack);
-	if (out_failed) {
-		graphics_draw_text(ctx, "Phone unreachable!", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 4 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-	} else if (no_server) {
-		graphics_draw_text(ctx, "No server set.", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 4 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-	} else if (no_lights) {
-		graphics_draw_text(ctx, "No lights found.", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 4 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-	} else if (conn_timeout) {
-		graphics_draw_text(ctx, "Connection timed out!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 4 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-	} else if (conn_error) {
-		graphics_draw_text(ctx, "HTTP Error!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 4 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-	} else if (server_error) {
-		graphics_draw_text(ctx, "Server error!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 4 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-	} else if (num_lights == 0) {
-		graphics_draw_text(ctx, "Loading lights...", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 4 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-	} else {
-		graphics_draw_text(ctx, lights[cell_index->row].label, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { 100, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-		graphics_draw_text(ctx, lights[cell_index->row].color, fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 24 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-		graphics_draw_text(ctx, lights[cell_index->row].state, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 106, -3 }, .size = { 34, 26 } }, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+	switch (cell_index->section) {
+		case MENU_SECTION_ALL:
+			if (out_failed) {
+				graphics_draw_text(ctx, "Phone unreachable!", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			} else if (no_server) {
+				graphics_draw_text(ctx, "No server set", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			} else if (no_lights) {
+				graphics_draw_text(ctx, "No lights found", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			} else if (conn_timeout) {
+				graphics_draw_text(ctx, "Connection timed out!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			} else if (conn_error) {
+				graphics_draw_text(ctx, "HTTP Error!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			} else if (server_error) {
+				graphics_draw_text(ctx, "Server error!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			} else if (num_lights == 0) {
+				graphics_draw_text(ctx, "Loading lights...", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			} else {
+				graphics_draw_text(ctx, "All Lights", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			}
+			break;
+		case MENU_SECTION_LIST:
+			if (num_lights > 0) {
+				graphics_draw_text(ctx, lights[cell_index->row].label, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { 100, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+				graphics_draw_text(ctx, lights[cell_index->row].state, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 110, -3 }, .size = { 30, 26 } }, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+			}
+			break;
 	}
 }
 
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-	if (num_lights > 0) {
-		selected_index = cell_index->row;
-		options_init();
+	switch (cell_index->section) {
+		case MENU_SECTION_ALL:
+			break;
+		case MENU_SECTION_LIST:
+			if (num_lights > 0) {
+				selected_index = cell_index->row;
+				options_init();
+			}
+			break;
 	}
 }
 
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-	refresh();
+	toggle_light();
 }

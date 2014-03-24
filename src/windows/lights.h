@@ -9,3 +9,4 @@ void lights_out_sent_handler(DictionaryIterator *sent);
 void lights_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason);
 bool lights_is_on_top();
 Light* light();
+void toggle_light();

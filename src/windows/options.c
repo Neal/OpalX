@@ -22,7 +22,6 @@
 #define MENU_ROW_COLORS_DEFAULT 1
 #define MENU_ROW_COLORS_MANUAL 2
 
-static void toggle();
 static void refresh();
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
@@ -114,19 +113,6 @@ bool options_is_on_top() {
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
-static void toggle() {
-	strncpy(light()->state, "...", sizeof(light()->state) - 1);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
-	Tuplet index_tuple = TupletInteger(KEY_INDEX, light()->index);
-	DictionaryIterator *iter;
-	app_message_outbox_begin(&iter);
-	if (iter == NULL)
-		return;
-	dict_write_tuplet(iter, &index_tuple);
-	dict_write_end(iter);
-	app_message_outbox_send();
-}
-
 static void refresh() {
 	out_failed = false;
 	conn_timeout = false;
@@ -183,7 +169,7 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 				graphics_draw_text(ctx, "Server error!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 0 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 			} else {
 				graphics_draw_text(ctx, light()->label, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { 100, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-				graphics_draw_text(ctx, light()->state, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 106, -3 }, .size = { 34, 26 } }, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+				graphics_draw_text(ctx, light()->state, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 110, -3 }, .size = { 30, 26 } }, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 			}
 			break;
 		case MENU_SECTION_COLORS:
@@ -226,7 +212,7 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		case MENU_SECTION_TOGGLE:
 			switch (cell_index->row) {
 				case MENU_ROW_TOGGLE:
-					toggle();
+					toggle_light();
 					break;
 			}
 			break;
