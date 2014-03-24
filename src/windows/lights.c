@@ -147,7 +147,7 @@ static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_
 		case MENU_SECTION_ALL:
 			return MENU_SECTION_ROWS_ALL;
 		case MENU_SECTION_LIST:
-			return num_lights ? num_lights : 1;
+			return num_lights;
 		default:
 			return 0;
 	}
