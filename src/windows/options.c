@@ -217,7 +217,7 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		case MENU_SECTION_TOGGLE:
 			switch (cell_index->row) {
 				case MENU_ROW_TOGGLE:
-					toggle_light();
+					light_toggle();
 					break;
 			}
 			break;

@@ -131,8 +131,8 @@ Light* light() {
 	return &lights[selected_index];
 }
 
-void toggle_light() {
-	strncpy(light()->state, "...", sizeof(light()->state) - 1);
+void light_toggle() {
+	strncpy(light()->state, "•••", sizeof(light()->state) - 1);
 	menu_layer_reload_data_and_mark_dirty(menu_layer);
 	Tuplet index_tuple = TupletInteger(KEY_INDEX, light()->index);
 	DictionaryIterator *iter;
@@ -140,6 +140,23 @@ void toggle_light() {
 	if (iter == NULL)
 		return;
 	dict_write_tuplet(iter, &index_tuple);
+	dict_write_end(iter);
+	app_message_outbox_send();
+}
+
+void light_update_color() {
+	Tuplet index_tuple = TupletInteger(KEY_INDEX, light()->index);
+	Tuplet color_h_tuple = TupletInteger(KEY_COLOR_H, light()->color.hue);
+	Tuplet color_s_tuple = TupletInteger(KEY_COLOR_S, light()->color.saturation);
+	Tuplet color_b_tuple = TupletInteger(KEY_COLOR_B, light()->color.brightness);
+	DictionaryIterator *iter;
+	app_message_outbox_begin(&iter);
+	if (iter == NULL)
+		return;
+	dict_write_tuplet(iter, &index_tuple);
+	dict_write_tuplet(iter, &color_h_tuple);
+	dict_write_tuplet(iter, &color_s_tuple);
+	dict_write_tuplet(iter, &color_b_tuple);
 	dict_write_end(iter);
 	app_message_outbox_send();
 }
@@ -239,5 +256,5 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 }
 
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-	toggle_light();
+	light_toggle();
 }

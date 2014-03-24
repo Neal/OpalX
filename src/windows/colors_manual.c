@@ -7,7 +7,6 @@
 
 #define NUM_TYPES 3
 
-static void set_colors();
 static void update_display();
 static void back_single_click_handler(ClickRecognizerRef recognizer, void *context);
 static void up_single_click_handler(ClickRecognizerRef recognizer, void *context);
@@ -88,23 +87,6 @@ bool colors_manual_is_on_top() {
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
-static void set_colors() {
-	Tuplet index_tuple = TupletInteger(KEY_INDEX, light()->index);
-	Tuplet color_h_tuple = TupletInteger(KEY_COLOR_H, progress_bar_layer_get_value(progress_bar[HUE]));
-	Tuplet color_s_tuple = TupletInteger(KEY_COLOR_S, progress_bar_layer_get_value(progress_bar[SATURATION]));
-	Tuplet color_b_tuple = TupletInteger(KEY_COLOR_B, progress_bar_layer_get_value(progress_bar[BRIGHTNESS]));
-	DictionaryIterator *iter;
-	app_message_outbox_begin(&iter);
-	if (iter == NULL)
-		return;
-	dict_write_tuplet(iter, &index_tuple);
-	dict_write_tuplet(iter, &color_h_tuple);
-	dict_write_tuplet(iter, &color_s_tuple);
-	dict_write_tuplet(iter, &color_b_tuple);
-	dict_write_end(iter);
-	app_message_outbox_send();
-}
-
 static void update_display() {
 	switch (controlling) {
 		case HUE:
@@ -138,7 +120,8 @@ static void down_single_click_handler(ClickRecognizerRef recognizer, void *conte
 }
 
 static void select_single_click_handler(ClickRecognizerRef recognizer, void *context) {
-	set_colors();
+	light()->color = (Color) { progress_bar_layer_get_value(progress_bar[HUE]), progress_bar_layer_get_value(progress_bar[SATURATION]), progress_bar_layer_get_value(progress_bar[BRIGHTNESS]) };
+	light_update_color();
 }
 
 static void select_long_click_handler(ClickRecognizerRef recognizer, void *context) {

@@ -191,6 +191,7 @@ Pebble.addEventListener('appmessage', function(e) {
 		} else {
 			LIFX.toggle(e.payload.index);
 		}
+		setTimeout(function() { LIFX.refresh(); }, 1000); // temporary fix for the api not returning updated values
 	} else {
 		LIFX.refresh();
 	}

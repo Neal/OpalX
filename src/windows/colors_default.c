@@ -4,21 +4,25 @@
 #include "../common.h"
 #include "lights.h"
 
-#define MENU_NUM_SECTIONS 2
+#define MENU_NUM_SECTIONS 3
 
 #define MENU_SECTION_STATUS 0
-#define MENU_SECTION_DEFAULT 1
+#define MENU_SECTION_COLORS 1
+#define MENU_SECTION_BRIGHTNESS 2
 
-#define MENU_SECTION_ROWS_DEFAULT 6
+#define MENU_SECTION_ROWS_COLORS 9
+#define MENU_SECTION_ROWS_BRIGHTNESS 1
 
-#define MENU_ROW_DEFAULT_WHITE 0
-#define MENU_ROW_DEFAULT_RED 1
-#define MENU_ROW_DEFAULT_ORANGE 2
-#define MENU_ROW_DEFAULT_YELLOW 3
-#define MENU_ROW_DEFAULT_GREEN 4
-#define MENU_ROW_DEFAULT_BLUE 5
+#define MENU_ROW_COLORS_WHITE 0
+#define MENU_ROW_COLORS_RED 1
+#define MENU_ROW_COLORS_ORANGE 2
+#define MENU_ROW_COLORS_YELLOW 3
+#define MENU_ROW_COLORS_GREEN 4
+#define MENU_ROW_COLORS_TEAL 5
+#define MENU_ROW_COLORS_BLUE 6
+#define MENU_ROW_COLORS_PURPLE 7
+#define MENU_ROW_COLORS_PINK 8
 
-static void refresh();
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
 static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
@@ -27,9 +31,11 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context);
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
+static void brightness_select_callback(struct NumberWindow *number_window, void *context);
 
 static Window *window;
 static MenuLayer *menu_layer;
+static NumberWindow *brightness_window;
 
 static bool out_failed = false;
 static bool conn_timeout = false;
@@ -53,10 +59,17 @@ void colors_default_init(void) {
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
 
+	brightness_window = number_window_create("Brightness", (NumberWindowCallbacks) { .selected = brightness_select_callback }, NULL);
+	number_window_set_min(brightness_window, 0);
+	number_window_set_max(brightness_window, 100);
+	number_window_set_step_size(brightness_window, 1);
+	number_window_set_value(brightness_window, light()->color.brightness);
+
 	window_stack_push(window, true);
 }
 
 void colors_default_destroy(void) {
+	number_window_destroy(brightness_window);
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
 }
@@ -110,16 +123,6 @@ bool colors_default_is_on_top() {
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
-static void refresh() {
-	out_failed = false;
-	conn_timeout = false;
-	conn_error = false;
-	server_error = false;
-	menu_layer_set_selected_index(menu_layer, (MenuIndex) { .row = 0, .section = 0 }, MenuRowAlignBottom, false);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
-	app_message_outbox_send();
-}
-
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {
 	return MENU_NUM_SECTIONS;
 }
@@ -128,8 +131,10 @@ static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_
 	switch (section_index) {
 		case MENU_SECTION_STATUS:
 			return 0;
-		case MENU_SECTION_DEFAULT:
-			return MENU_SECTION_ROWS_DEFAULT;
+		case MENU_SECTION_COLORS:
+			return MENU_SECTION_ROWS_COLORS;
+		case MENU_SECTION_BRIGHTNESS:
+			return MENU_SECTION_ROWS_BRIGHTNESS;
 	}
 	return 0;
 }
@@ -138,7 +143,8 @@ static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uin
 	switch (section_index) {
 		case MENU_SECTION_STATUS:
 			return 28;
-		case MENU_SECTION_DEFAULT:
+		case MENU_SECTION_COLORS:
+		case MENU_SECTION_BRIGHTNESS:
 			return MENU_CELL_BASIC_HEADER_HEIGHT;
 	}
 	return 0;
@@ -165,8 +171,11 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 				graphics_draw_text(ctx, light()->state, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 110, -3 }, .size = { 30, 26 } }, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 			}
 			break;
-		case MENU_SECTION_DEFAULT:
+		case MENU_SECTION_COLORS:
 			menu_cell_basic_header_draw(ctx, cell_layer, "Default colors");
+			break;
+		case MENU_SECTION_BRIGHTNESS:
+			menu_cell_basic_header_draw(ctx, cell_layer, "Other");
 			break;
 	}
 }
@@ -174,27 +183,39 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
 	char label[13] = "";
 	switch (cell_index->section) {
-		case MENU_SECTION_DEFAULT:
+		case MENU_SECTION_COLORS:
 			switch (cell_index->row) {
-				case MENU_ROW_DEFAULT_WHITE:
+				case MENU_ROW_COLORS_WHITE:
 					strcpy(label, "White");
 					break;
-				case MENU_ROW_DEFAULT_RED:
+				case MENU_ROW_COLORS_RED:
 					strcpy(label, "Red");
 					break;
-				case MENU_ROW_DEFAULT_ORANGE:
+				case MENU_ROW_COLORS_ORANGE:
 					strcpy(label, "Orange");
 					break;
-				case MENU_ROW_DEFAULT_YELLOW:
+				case MENU_ROW_COLORS_YELLOW:
 					strcpy(label, "Yellow");
 					break;
-				case MENU_ROW_DEFAULT_GREEN:
+				case MENU_ROW_COLORS_GREEN:
 					strcpy(label, "Green");
 					break;
-				case MENU_ROW_DEFAULT_BLUE:
+				case MENU_ROW_COLORS_TEAL:
+					strcpy(label, "Teal");
+					break;
+				case MENU_ROW_COLORS_BLUE:
 					strcpy(label, "Blue");
 					break;
+				case MENU_ROW_COLORS_PURPLE:
+					strcpy(label, "Purple");
+					break;
+				case MENU_ROW_COLORS_PINK:
+					strcpy(label, "Pink");
+					break;
 			}
+			break;
+		case MENU_SECTION_BRIGHTNESS:
+			strcpy(label, "Brightness");
 			break;
 	}
 	graphics_context_set_text_color(ctx, GColorBlack);
@@ -203,25 +224,57 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
 
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
 	switch (cell_index->section) {
-		case MENU_SECTION_DEFAULT:
+		case MENU_SECTION_COLORS:
 			switch (cell_index->row) {
-				case MENU_ROW_DEFAULT_WHITE:
+				case MENU_ROW_COLORS_WHITE:
+					light()->color = (Color) { 0, 0, light()->color.brightness };
+					light_update_color();
 					break;
-				case MENU_ROW_DEFAULT_RED:
+				case MENU_ROW_COLORS_RED:
+					light()->color = (Color) { 0, 100, light()->color.brightness };
+					light_update_color();
 					break;
-				case MENU_ROW_DEFAULT_ORANGE:
+				case MENU_ROW_COLORS_ORANGE:
+					light()->color = (Color) { 10, 100, light()->color.brightness };
+					light_update_color();
 					break;
-				case MENU_ROW_DEFAULT_YELLOW:
+				case MENU_ROW_COLORS_YELLOW:
+					light()->color = (Color) { 15, 100, light()->color.brightness };
+					light_update_color();
 					break;
-				case MENU_ROW_DEFAULT_GREEN:
+				case MENU_ROW_COLORS_GREEN:
+					light()->color = (Color) { 30, 100, light()->color.brightness };
+					light_update_color();
 					break;
-				case MENU_ROW_DEFAULT_BLUE:
+				case MENU_ROW_COLORS_TEAL:
+					light()->color = (Color) { 50, 100, light()->color.brightness };
+					light_update_color();
+					break;
+				case MENU_ROW_COLORS_BLUE:
+					light()->color = (Color) { 65, 100, light()->color.brightness };
+					light_update_color();
+					break;
+				case MENU_ROW_COLORS_PURPLE:
+					light()->color = (Color) { 80, 100, light()->color.brightness };
+					light_update_color();
+					break;
+				case MENU_ROW_COLORS_PINK:
+					light()->color = (Color) { 90, 100, light()->color.brightness };
+					light_update_color();
 					break;
 			}
+			break;
+		case MENU_SECTION_BRIGHTNESS:
+			window_stack_push((Window*)brightness_window, true);
 			break;
 	}
 }
 
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-	refresh();
+}
+
+static void brightness_select_callback(struct NumberWindow *number_window, void *context) {
+	light()->color.brightness = number_window_get_value(number_window);
+	light_update_color();
+	window_stack_pop(true);
 }
