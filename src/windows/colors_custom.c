@@ -82,10 +82,11 @@ void colors_custom_in_received_handler(DictionaryIterator *iter) {
 		conn_timeout = false;
 		conn_error = false;
 		server_error = false;
-		light()->index = index_tuple->value->int16;
-		strncpy(light()->label, label_tuple->value->cstring, sizeof(light()->label) - 1);
-		strncpy(light()->color, color_tuple->value->cstring, sizeof(light()->color) - 1);
-		strncpy(light()->state, state_tuple->value->cstring, sizeof(light()->state) - 1);
+		if (index_tuple->value->int16 == light()->index) {
+			strncpy(light()->label, label_tuple->value->cstring, sizeof(light()->label) - 1);
+			strncpy(light()->color, color_tuple->value->cstring, sizeof(light()->color) - 1);
+			strncpy(light()->state, state_tuple->value->cstring, sizeof(light()->state) - 1);
+		}
 		menu_layer_reload_data_and_mark_dirty(menu_layer);
 	}
 }
