@@ -69,6 +69,33 @@ var LIFX = {
 		appMessageQueue.add({error:error});
 		appMessageQueue.send();
 	},
+	color: function(index, hue, saturation, brightness) {
+		if (!this.server) return this.error('no_server_set');
+		var post_data = {hue:LIFX.colors.hue.toReal(hue), saturation:LIFX.colors.saturation.toReal(saturation), brightness:LIFX.colors.brightness.toReal(brightness)};
+		var xhr = new XMLHttpRequest();
+		xhr.open('PUT', this.server + '/lights/' + encodeURIComponent(this.devices[index].id) + '/color.json', true);
+		xhr.onload = function() {
+			appMessageQueue.clear();
+			try {
+				var res = JSON.parse(xhr.responseText);
+				var label = res.label ? res.label.substring(0,32) : res.id.substring(0,32);
+				var state = res.on ? 'ON' : 'OFF';
+				var color_h = LIFX.colors.hue.toFake(res.color.hue) || 0;
+				var color_s = LIFX.colors.saturation.toFake(res.color.saturation) || 0;
+				var color_b = LIFX.colors.brightness.toFake(res.color.brightness) || 0;
+				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
+				appMessageQueue.add({index:LIFX.devices.length});
+			} catch(e) {
+				appMessageQueue.add({index:index, label:LIFX.devices[index].label, state:'Err'});
+				appMessageQueue.add({index:LIFX.devices.length});
+			}
+			appMessageQueue.send();
+		};
+		xhr.ontimeout = function() { LIFX.error('timeout'); };
+		xhr.onerror = function() { LIFX.error('error'); };
+		xhr.timeout = 10000;
+		xhr.send(post_data);
+	},
 	toggle: function(index) {
 		if (!this.server) return this.error('no_server_set');
 		var xhr = new XMLHttpRequest();
@@ -85,7 +112,7 @@ var LIFX = {
 				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 				appMessageQueue.add({index:LIFX.devices.length});
 			} catch(e) {
-				appMessageQueue.add({index:index, label:LIFX.devices[index].label, color:'Error!', state:''});
+				appMessageQueue.add({index:index, label:LIFX.devices[index].label, state:'Err'});
 				appMessageQueue.add({index:LIFX.devices.length});
 			}
 			appMessageQueue.send();
@@ -132,9 +159,13 @@ Pebble.addEventListener('ready', function(e) {
 });
 
 Pebble.addEventListener('appmessage', function(e) {
-	if (typeof(e.payload.index) != 'undefined') {
-		LIFX.toggle(e.payload.index);
-	} else{
+	if (isset(e.payload.index)) {
+		if (isset(e.payload.color_h) && isset(e.payload.color_s) && isset(e.payload.color_b)) {
+			LIFX.color(e.payload.index, e.payload.color_h, e.payload.color_s, e.payload.color_b);
+		} else {
+			LIFX.toggle(e.payload.index);
+		}
+	} else {
 		LIFX.refresh();
 	}
 });
@@ -154,3 +185,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
 		}
 	}
 });
+
+function isset(i) {
+	return (typeof i != 'undefined');
+}
