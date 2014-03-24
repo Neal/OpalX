@@ -2,6 +2,8 @@
 
 LIFX remote app for the Pebble Smartwatch. It uses with the [LIFX HTTP API](https://github.com/chendo/lifx-http).
 
+> This app is still work in progress.
+
 ## Features
 
 * Discover all lights
