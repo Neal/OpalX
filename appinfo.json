@@ -12,9 +12,11 @@
 	"appKeys": {
 		"index": 0,
 		"label": 1,
-		"color": 2,
-		"state": 3,
-		"error": 4
+		"state": 2,
+		"color_h": 3,
+		"color_s": 4,
+		"color_b": 5,
+		"error": 6
 	},
 	"resources": {
 		"media": [

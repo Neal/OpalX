@@ -26,5 +26,6 @@ void progress_bar_layer_set_value(ProgressBarLayer* bar, int32_t value);
 void progress_bar_layer_set_frame_color(ProgressBarLayer* bar, GColor color);
 void progress_bar_layer_set_bar_color(ProgressBarLayer* bar, GColor color);
 void progress_bar_layer_set_orientation(ProgressBarLayer* bar, ProgressBarOrientation orientation);
+int32_t progress_bar_layer_get_value(ProgressBarLayer* bar);
 
 #endif

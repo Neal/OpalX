@@ -53,6 +53,11 @@ void progress_bar_layer_set_orientation(ProgressBarLayer* bar, ProgressBarOrient
 	layer_mark_dirty(bar);
 }
 
+int32_t progress_bar_layer_get_value(ProgressBarLayer* bar) {
+	ProgressBarData *data = (ProgressBarData *)layer_get_data(bar);
+	return data->value;
+}
+
 static void progress_bar_layer_update(ProgressBarLayer *bar, GContext *ctx) {
 	ProgressBarData *data = (ProgressBarData *)layer_get_data(bar);
 	GRect bounds = layer_get_bounds(bar);

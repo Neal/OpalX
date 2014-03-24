@@ -38,17 +38,36 @@ var appMessageQueue = {
 var LIFX = {
 	server: localStorage.getItem('server') || '',
 	devices: [],
+	colors: {
+		hue: {
+			toFake: function(val) {
+				return parseInt((val / 360) * 100);
+			},
+			toReal: function(val) {
+				return val * 3.6;
+			}
+		},
+		saturation: {
+			toFake: function(val) {
+				return parseInt(val * 100);
+			},
+			toReal: function(val) {
+				return val / 100;
+			}
+		},
+		brightness: {
+			toFake: function(val) {
+				return parseInt(val * 100);
+			},
+			toReal: function(val) {
+				return val / 100;
+			}
+		}
+	},
 	error: function(error) {
 		appMessageQueue.clear();
 		appMessageQueue.add({error:error});
 		appMessageQueue.send();
-	},
-	makeColor: function(color) {
-		try {
-			return parseInt(color.hue) + ' · ' + parseInt(color.saturation) + ' · ' + parseInt(color.brightness);
-		} catch (e) {
-			return 'Unknown';
-		}
 	},
 	toggle: function(index) {
 		if (!this.server) return this.error('no_server_set');
@@ -58,11 +77,12 @@ var LIFX = {
 			appMessageQueue.clear();
 			try {
 				var res = JSON.parse(xhr.responseText);
-				console.log('toggle: ' + JSON.stringify(res));
 				var label = res.label ? res.label.substring(0,32) : res.id.substring(0,32);
-				var color = LIFX.makeColor(res.color) || '';
 				var state = res.on ? 'ON' : 'OFF';
-				appMessageQueue.add({index:index, label:label, color:color, state:state});
+				var color_h = LIFX.colors.hue.toFake(res.color.hue) || 0;
+				var color_s = LIFX.colors.saturation.toFake(res.color.saturation) || 0;
+				var color_b = LIFX.colors.brightness.toFake(res.color.brightness) || 0;
+				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 				appMessageQueue.add({index:LIFX.devices.length});
 			} catch(e) {
 				appMessageQueue.add({index:index, label:LIFX.devices[index].label, color:'Error!', state:''});
@@ -87,9 +107,11 @@ var LIFX = {
 				var i = 0;
 				for (var r in res) {
 					var label = res[r].label ? res[r].label.substring(0,32) : res[r].id.substring(0,32);
-					var color = LIFX.makeColor(res[r].color) || '';
 					var state = res[r].on ? 'ON' : 'OFF';
-					appMessageQueue.add({index:i++, label:label, color:color, state:state});
+					var color_h = LIFX.colors.hue.toFake(res[r].color.hue) || 0;
+					var color_s = LIFX.colors.saturation.toFake(res[r].color.saturation) || 0;
+					var color_b = LIFX.colors.brightness.toFake(res[r].color.brightness) || 0;
+					appMessageQueue.add({index:i++, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 					LIFX.devices.push(res[r]);
 				}
 				appMessageQueue.add({index:i});

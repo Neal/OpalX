@@ -69,7 +69,6 @@ static void set_colors() {
 }
 
 static void update_display() {
-	inverter_layer_destroy(inverter_layer);
 	switch (controlling) {
 		case HUE:
 			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 5 }, .size = { PEBBLE_WIDTH - 20, 40 } });
@@ -81,6 +80,9 @@ static void update_display() {
 			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 107 }, .size = { PEBBLE_WIDTH - 20, 40 } });
 			break;
 	}
+	progress_bar_layer_set_value(progress_bar[HUE], light()->color.hue);
+	progress_bar_layer_set_value(progress_bar[SATURATION], light()->color.saturation);
+	progress_bar_layer_set_value(progress_bar[BRIGHTNESS], light()->color.brightness);
 	layer_add_child(window_get_root_layer(window), inverter_layer_get_layer(inverter_layer));
 }
 
@@ -90,9 +92,15 @@ static void back_single_click_handler(ClickRecognizerRef recognizer, void *conte
 }
 
 static void up_single_click_handler(ClickRecognizerRef recognizer, void *context) {
+	int val = progress_bar_layer_get_value(progress_bar[controlling]) + 1;
+	if (val > 100) val = 100;
+	progress_bar_layer_set_value(progress_bar[controlling], val);
 }
 
 static void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
+	int val = progress_bar_layer_get_value(progress_bar[controlling]) - 1;
+	if (val < 0) val = 0;
+	progress_bar_layer_set_value(progress_bar[controlling], val);
 }
 
 static void select_single_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -100,15 +108,16 @@ static void select_single_click_handler(ClickRecognizerRef recognizer, void *con
 
 static void select_long_click_handler(ClickRecognizerRef recognizer, void *context) {
 	controlling = (controlling + 1) % NUM_TYPES;
+	if (inverter_layer) inverter_layer_destroy(inverter_layer);
 	update_display();
 }
 
 static void click_config_provider(void *context) {
 	window_single_click_subscribe(BUTTON_ID_BACK, back_single_click_handler);
-	window_single_repeating_click_subscribe(BUTTON_ID_UP, 500, up_single_click_handler);
-	window_single_repeating_click_subscribe(BUTTON_ID_DOWN, 500, down_single_click_handler);
+	window_single_repeating_click_subscribe(BUTTON_ID_UP, 30, up_single_click_handler);
+	window_single_repeating_click_subscribe(BUTTON_ID_DOWN, 30, down_single_click_handler);
 	window_single_click_subscribe(BUTTON_ID_SELECT, select_single_click_handler);
-	window_long_click_subscribe(BUTTON_ID_SELECT, 500, select_long_click_handler, NULL);
+	window_long_click_subscribe(BUTTON_ID_SELECT, 400, select_long_click_handler, NULL);
 }
 
 static void window_load(Window *window) {
