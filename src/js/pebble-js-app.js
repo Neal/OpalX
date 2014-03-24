@@ -138,6 +138,24 @@ var LIFX = {
 		});
 	},
 
+	on: function(index) {
+		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/on.json';
+		LIFX.http.makeRequest('PUT', url, null, function(xhr) {
+			LIFX.handleResponse(xhr, index);
+		}, function(e) {
+			LIFX.error(e);
+		});
+	},
+
+	off: function(index) {
+		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/off.json';
+		LIFX.http.makeRequest('PUT', url, null, function(xhr) {
+			LIFX.handleResponse(xhr, index);
+		}, function(e) {
+			LIFX.error(e);
+		});
+	},
+
 	refresh: function() {
 		var url = this.server + '/lights.json';
 		LIFX.http.makeRequest('GET', url, null, function(xhr) {
@@ -161,7 +179,7 @@ var LIFX = {
 };
 
 Pebble.addEventListener('ready', function(e) {
-	if (!LIFX.server) LIFX.error('no_server_set');
+	if (!LIFX.server) return LIFX.error('no_server_set');
 	LIFX.refresh();
 });
 
