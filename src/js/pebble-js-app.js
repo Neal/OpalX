@@ -40,6 +40,9 @@ var LIFX = {
 	lights: [],
 
 	colors: {
+		makePostData: function(hue, saturation, brightness) {
+			return {hue:LIFX.colors.hue.toReal(hue), saturation:LIFX.colors.saturation.toReal(saturation), brightness:LIFX.colors.brightness.toReal(brightness)};
+		},
 		hue: {
 			toFake: function(val) {
 				return parseInt((val / 360) * 100);
@@ -117,10 +120,9 @@ var LIFX = {
 	},
 
 	color: function(index, hue, saturation, brightness) {
-		if (!this.server) return this.error('no_server_set');
-		var data = {hue:LIFX.colors.hue.toReal(hue), saturation:LIFX.colors.saturation.toReal(saturation), brightness:LIFX.colors.brightness.toReal(brightness)};
+		var data = JSON.stringify(LIFX.colors.makePostData(hue, saturation, brightness));
 		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/color.json';
-		LIFX.http.makeRequest('PUT', url, JSON.stringify(data), function(xhr) {
+		LIFX.http.makeRequest('PUT', url, data, function(xhr) {
 			LIFX.handleResponse(xhr, index);
 		}, function(e) {
 			LIFX.error(e);
@@ -128,7 +130,6 @@ var LIFX = {
 	},
 
 	toggle: function(index) {
-		if (!this.server) return this.error('no_server_set');
 		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/toggle.json';
 		LIFX.http.makeRequest('PUT', url, null, function(xhr) {
 			LIFX.handleResponse(xhr, index);
@@ -138,8 +139,6 @@ var LIFX = {
 	},
 
 	refresh: function() {
-		if (!this.server) return this.error('no_server_set');
-		this.lights = [];
 		var url = this.server + '/lights.json';
 		LIFX.http.makeRequest('GET', url, null, function(xhr) {
 			LIFX.handleResponse(xhr);
@@ -162,6 +161,7 @@ var LIFX = {
 };
 
 Pebble.addEventListener('ready', function(e) {
+	if (!LIFX.server) LIFX.error('no_server_set');
 	LIFX.refresh();
 });
 
