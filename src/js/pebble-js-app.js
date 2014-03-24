@@ -86,7 +86,8 @@ var LIFX = {
 				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 				appMessageQueue.add({index:LIFX.devices.length});
 			} catch(e) {
-				appMessageQueue.add({index:index, label:LIFX.devices[index].label, state:'Err'});
+				var label = LIFX.devices[index].label ? LIFX.devices[index].label.substring(0,32) : LIFX.devices[index].id.substring(0,32);
+				appMessageQueue.add({index:index, label:label, state:'Err'});
 				appMessageQueue.add({index:LIFX.devices.length});
 			}
 			appMessageQueue.send();
@@ -94,7 +95,7 @@ var LIFX = {
 		xhr.ontimeout = function() { LIFX.error('timeout'); };
 		xhr.onerror = function() { LIFX.error('error'); };
 		xhr.timeout = 10000;
-		xhr.send(post_data);
+		xhr.send(JSON.stringify(post_data));
 	},
 	toggle: function(index) {
 		if (!this.server) return this.error('no_server_set');
@@ -112,7 +113,8 @@ var LIFX = {
 				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 				appMessageQueue.add({index:LIFX.devices.length});
 			} catch(e) {
-				appMessageQueue.add({index:index, label:LIFX.devices[index].label, state:'Err'});
+				var label = LIFX.devices[index].label ? LIFX.devices[index].label.substring(0,32) : LIFX.devices[index].id.substring(0,32);
+				appMessageQueue.add({index:index, label:label, state:'Err'});
 				appMessageQueue.add({index:LIFX.devices.length});
 			}
 			appMessageQueue.send();
@@ -159,6 +161,7 @@ Pebble.addEventListener('ready', function(e) {
 });
 
 Pebble.addEventListener('appmessage', function(e) {
+	console.log('AppMessage received: ' + JSON.stringify(e.payload));
 	if (isset(e.payload.index)) {
 		if (isset(e.payload.color_h) && isset(e.payload.color_s) && isset(e.payload.color_b)) {
 			LIFX.color(e.payload.index, e.payload.color_h, e.payload.color_s, e.payload.color_b);

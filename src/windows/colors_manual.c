@@ -8,6 +8,7 @@
 #define NUM_TYPES 3
 
 static void set_colors();
+static void update_display();
 static void back_single_click_handler(ClickRecognizerRef recognizer, void *context);
 static void up_single_click_handler(ClickRecognizerRef recognizer, void *context);
 static void down_single_click_handler(ClickRecognizerRef recognizer, void *context);
@@ -55,6 +56,24 @@ void colors_manual_destroy(void) {
 }
 
 void colors_manual_in_received_handler(DictionaryIterator *iter) {
+	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
+	Tuple *label_tuple = dict_find(iter, KEY_LABEL);
+	Tuple *state_tuple = dict_find(iter, KEY_STATE);
+	Tuple *color_h_tuple = dict_find(iter, KEY_COLOR_H);
+	Tuple *color_s_tuple = dict_find(iter, KEY_COLOR_S);
+	Tuple *color_b_tuple = dict_find(iter, KEY_COLOR_B);
+
+	if (index_tuple && label_tuple && state_tuple) {
+		if (index_tuple->value->int16 == light()->index) {
+			strncpy(light()->label, label_tuple->value->cstring, sizeof(light()->label) - 1);
+			strncpy(light()->state, state_tuple->value->cstring, sizeof(light()->state) - 1);
+			if (color_h_tuple) light()->color.hue = color_h_tuple->value->int8;
+			if (color_s_tuple) light()->color.saturation = color_s_tuple->value->int8;
+			if (color_b_tuple) light()->color.brightness = color_b_tuple->value->int8;
+		}
+		if (inverter_layer) inverter_layer_destroy(inverter_layer);
+		update_display();
+	}
 }
 
 void colors_manual_out_sent_handler(DictionaryIterator *sent) {
@@ -63,9 +82,27 @@ void colors_manual_out_sent_handler(DictionaryIterator *sent) {
 void colors_manual_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason) {
 }
 
+bool colors_manual_is_on_top() {
+	return window == window_stack_get_top_window();
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static void set_colors() {
+	Tuplet index_tuple = TupletInteger(KEY_INDEX, light()->index);
+	Tuplet color_h_tuple = TupletInteger(KEY_COLOR_H, progress_bar_layer_get_value(progress_bar[HUE]));
+	Tuplet color_s_tuple = TupletInteger(KEY_COLOR_S, progress_bar_layer_get_value(progress_bar[SATURATION]));
+	Tuplet color_b_tuple = TupletInteger(KEY_COLOR_B, progress_bar_layer_get_value(progress_bar[BRIGHTNESS]));
+	DictionaryIterator *iter;
+	app_message_outbox_begin(&iter);
+	if (iter == NULL)
+		return;
+	dict_write_tuplet(iter, &index_tuple);
+	dict_write_tuplet(iter, &color_h_tuple);
+	dict_write_tuplet(iter, &color_s_tuple);
+	dict_write_tuplet(iter, &color_b_tuple);
+	dict_write_end(iter);
+	app_message_outbox_send();
 }
 
 static void update_display() {
@@ -80,9 +117,6 @@ static void update_display() {
 			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 107 }, .size = { PEBBLE_WIDTH - 20, 40 } });
 			break;
 	}
-	progress_bar_layer_set_value(progress_bar[HUE], light()->color.hue);
-	progress_bar_layer_set_value(progress_bar[SATURATION], light()->color.saturation);
-	progress_bar_layer_set_value(progress_bar[BRIGHTNESS], light()->color.brightness);
 	layer_add_child(window_get_root_layer(window), inverter_layer_get_layer(inverter_layer));
 }
 
@@ -104,6 +138,7 @@ static void down_single_click_handler(ClickRecognizerRef recognizer, void *conte
 }
 
 static void select_single_click_handler(ClickRecognizerRef recognizer, void *context) {
+	set_colors();
 }
 
 static void select_long_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -148,6 +183,10 @@ static void window_load(Window *window) {
 		progress_bar_layer_set_bar_color(progress_bar[i], GColorBlack);
 		layer_add_child(window_get_root_layer(window), progress_bar[i]);
 	}
+
+	progress_bar_layer_set_value(progress_bar[HUE], light()->color.hue);
+	progress_bar_layer_set_value(progress_bar[SATURATION], light()->color.saturation);
+	progress_bar_layer_set_value(progress_bar[BRIGHTNESS], light()->color.brightness);
 
 	update_display();
 }
