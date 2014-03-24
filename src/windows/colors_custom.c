@@ -63,10 +63,10 @@ void colors_custom_destroy(void) {
 void colors_custom_in_received_handler(DictionaryIterator *iter) {
 	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
 	Tuple *label_tuple = dict_find(iter, KEY_LABEL);
+	Tuple *state_tuple = dict_find(iter, KEY_STATE);
 	Tuple *color_h_tuple = dict_find(iter, KEY_COLOR_H);
 	Tuple *color_s_tuple = dict_find(iter, KEY_COLOR_S);
 	Tuple *color_b_tuple = dict_find(iter, KEY_COLOR_B);
-	Tuple *state_tuple = dict_find(iter, KEY_STATE);
 	Tuple *error_tuple = dict_find(iter, KEY_ERROR);
 
 	if (error_tuple) {

@@ -7,7 +7,7 @@
 #define MENU_NUM_SECTIONS 2
 
 #define MENU_SECTION_ALL 0
-#define MENU_SECTION_LIST 1
+#define MENU_SECTION_LIGHTS 1
 
 #define MENU_SECTION_ROWS_ALL 1
 
@@ -54,6 +54,14 @@ void lights_init(void) {
 	menu_layer_add_to_window(menu_layer, window);
 
 	window_stack_push(window, true);
+
+	Light light;
+	light.index = MAX_LIGHTS - 1;
+	strncpy(light.label, "All Lights", sizeof(light.label) - 1);
+	strncpy(light.state, "", sizeof(light.state) - 1);
+	Color color = { .hue = 50, .saturation = 50, .brightness = 50 };
+	light.color = color;
+	lights[light.index] = light;
 }
 
 void lights_destroy(void) {
@@ -65,10 +73,10 @@ void lights_destroy(void) {
 void lights_in_received_handler(DictionaryIterator *iter) {
 	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
 	Tuple *label_tuple = dict_find(iter, KEY_LABEL);
+	Tuple *state_tuple = dict_find(iter, KEY_STATE);
 	Tuple *color_h_tuple = dict_find(iter, KEY_COLOR_H);
 	Tuple *color_s_tuple = dict_find(iter, KEY_COLOR_S);
 	Tuple *color_b_tuple = dict_find(iter, KEY_COLOR_B);
-	Tuple *state_tuple = dict_find(iter, KEY_STATE);
 	Tuple *error_tuple = dict_find(iter, KEY_ERROR);
 
 	if (error_tuple) {
@@ -146,7 +154,7 @@ static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_
 	switch (section_index) {
 		case MENU_SECTION_ALL:
 			return MENU_SECTION_ROWS_ALL;
-		case MENU_SECTION_LIST:
+		case MENU_SECTION_LIGHTS:
 			return num_lights;
 		default:
 			return 0;
@@ -157,7 +165,7 @@ static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uin
 	switch (section_index) {
 		case MENU_SECTION_ALL:
 			return MENU_CELL_BASIC_HEADER_HEIGHT;
-		case MENU_SECTION_LIST:
+		case MENU_SECTION_LIGHTS:
 			return 1; // this should be 0 but MenuLayer breaks if we set it to 0. <<< TODO
 		default:
 			return 0;
@@ -167,8 +175,7 @@ static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uin
 static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
 	switch (cell_index->section) {
 		case MENU_SECTION_ALL:
-			return 30;
-		case MENU_SECTION_LIST:
+		case MENU_SECTION_LIGHTS:
 			return 30;
 		default:
 			return 0;
@@ -205,7 +212,7 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
 				graphics_draw_text(ctx, "All Lights", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 			}
 			break;
-		case MENU_SECTION_LIST:
+		case MENU_SECTION_LIGHTS:
 			if (num_lights > 0) {
 				graphics_draw_text(ctx, lights[cell_index->row].label, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { 100, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 				graphics_draw_text(ctx, lights[cell_index->row].state, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 110, -3 }, .size = { 30, 26 } }, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
@@ -217,8 +224,12 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
 	switch (cell_index->section) {
 		case MENU_SECTION_ALL:
+			if (num_lights > 0) {
+				selected_index = MAX_LIGHTS - 1;
+				options_init();
+			}
 			break;
-		case MENU_SECTION_LIST:
+		case MENU_SECTION_LIGHTS:
 			if (num_lights > 0) {
 				selected_index = cell_index->row;
 				options_init();
