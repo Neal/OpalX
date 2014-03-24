@@ -108,13 +108,13 @@ static void set_colors() {
 static void update_display() {
 	switch (controlling) {
 		case HUE:
-			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 5 }, .size = { PEBBLE_WIDTH - 20, 40 } });
+			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 9 }, .size = { PEBBLE_WIDTH - 20, 24 } });
 			break;
 		case SATURATION:
-			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 56 }, .size = { PEBBLE_WIDTH - 20, 40 } });
+			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 57 }, .size = { PEBBLE_WIDTH - 20, 24 } });
 			break;
 		case BRIGHTNESS:
-			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 107 }, .size = { PEBBLE_WIDTH - 20, 40 } });
+			inverter_layer = inverter_layer_create((GRect) { .origin = { 0, 106 }, .size = { PEBBLE_WIDTH - 20, 24 } });
 			break;
 	}
 	layer_add_child(window_get_root_layer(window), inverter_layer_get_layer(inverter_layer));
@@ -169,14 +169,14 @@ static void window_load(Window *window) {
 	action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, action_icon_select);
 
 	for (int i = 0; i < NUM_TYPES; i++) {
-		title_text_layer[i] = text_layer_create((GRect) { .origin = { 4, 52 * i }, .size = { PEBBLE_WIDTH - 28, 28 } });
+		title_text_layer[i] = text_layer_create((GRect) { .origin = { 6, (48 * i) + 4 }, .size = { PEBBLE_WIDTH - 32, 28 } });
 		text_layer_set_text(title_text_layer[i], title_text[i]);
 		text_layer_set_text_color(title_text_layer[i], GColorBlack);
 		text_layer_set_background_color(title_text_layer[i], GColorClear);
 		text_layer_set_font(title_text_layer[i], fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
 		layer_add_child(window_get_root_layer(window), text_layer_get_layer(title_text_layer[i]));
 
-		progress_bar[i] = progress_bar_layer_create((GRect) { .origin = { 4, (52 * i) + 32 }, .size = { PEBBLE_WIDTH - 28, 8 } });
+		progress_bar[i] = progress_bar_layer_create((GRect) { .origin = { 4, (48 * i) + 36 }, .size = { PEBBLE_WIDTH - 28, 8 } });
 		progress_bar_layer_set_orientation(progress_bar[i], ProgressBarOrientationHorizontal);
 		progress_bar_layer_set_range(progress_bar[i], 0, 100);
 		progress_bar_layer_set_frame_color(progress_bar[i], GColorBlack);
