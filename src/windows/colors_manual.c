@@ -57,8 +57,6 @@ void colors_manual_init(void) {
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
 
-	window_stack_push(window, true);
-
 	number_window[HUE] = number_window_create("Hue", (NumberWindowCallbacks) { .selected = hue_select_callback }, NULL);
 	number_window_set_min(number_window[HUE], 0);
 	number_window_set_max(number_window[HUE], 100);
@@ -84,6 +82,10 @@ void colors_manual_destroy(void) {
 	}
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
+}
+
+void colors_manual_show(void) {
+	window_stack_push(window, true);
 }
 
 void colors_manual_in_received_handler(DictionaryIterator *iter) {

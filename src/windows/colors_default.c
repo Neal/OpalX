@@ -54,13 +54,15 @@ void colors_default_init(void) {
 	});
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
-
-	window_stack_push(window, true);
 }
 
 void colors_default_destroy(void) {
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
+}
+
+void colors_default_show(void) {
+	window_stack_push(window, true);
 }
 
 void colors_default_in_received_handler(DictionaryIterator *iter) {

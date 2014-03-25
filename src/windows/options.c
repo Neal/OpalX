@@ -58,7 +58,9 @@ void options_init(void) {
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
 
-	window_stack_push(window, true);
+	colors_custom_init();
+	colors_default_init();
+	colors_manual_init();
 }
 
 void options_destroy(void) {
@@ -67,6 +69,10 @@ void options_destroy(void) {
 	colors_manual_destroy();
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
+}
+
+void options_show(void) {
+	window_stack_push(window, true);
 }
 
 void options_in_received_handler(DictionaryIterator *iter) {
@@ -225,13 +231,13 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		case MENU_SECTION_COLORS:
 			switch (cell_index->row) {
 				case MENU_ROW_COLORS_CUSTOM:
-					colors_custom_init();
+					colors_custom_show();
 					break;
 				case MENU_ROW_COLORS_DEFAULT:
-					colors_default_init();
+					colors_default_show();
 					break;
 				case MENU_ROW_COLORS_MANUAL:
-					colors_manual_init();
+					colors_manual_show();
 					break;
 			}
 			break;

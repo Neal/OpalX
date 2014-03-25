@@ -66,6 +66,8 @@ void lights_init(void) {
 	strncpy(all_lights.label, "All Lights", sizeof(all_lights.label) - 1);
 	strncpy(all_lights.state, "", sizeof(all_lights.state) - 1);
 	all_lights.color = (Color) { .hue = 50, .saturation = 50, .brightness = 50 };
+
+	options_init();
 }
 
 void lights_destroy(void) {
@@ -277,20 +279,20 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		case MENU_SECTION_ALL:
 			if (num_lights > 0) {
 				selected_index = ALL_LIGHTS_INDEX;
-				options_init();
+				options_show();
 			}
 			break;
 		case MENU_SECTION_LIGHTS:
 			if (num_lights > 0) {
 				selected_index = cell_index->row;
-				options_init();
+				options_show();
 			}
 			break;
 		case MENU_SECTION_TAGS:
 			if (num_tags > 0) {
 				tag_selected = true;
 				selected_index = cell_index->row;
-				options_init();
+				options_show();
 			}
 			break;
 	}
