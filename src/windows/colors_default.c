@@ -4,14 +4,12 @@
 #include "../common.h"
 #include "lights.h"
 
-#define MENU_NUM_SECTIONS 3
+#define MENU_NUM_SECTIONS 2
 
 #define MENU_SECTION_STATUS 0
 #define MENU_SECTION_COLORS 1
-#define MENU_SECTION_BRIGHTNESS 2
 
 #define MENU_SECTION_ROWS_COLORS 9
-#define MENU_SECTION_ROWS_BRIGHTNESS 1
 
 #define MENU_ROW_COLORS_WHITE 0
 #define MENU_ROW_COLORS_RED 1
@@ -31,11 +29,9 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context);
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
-static void brightness_select_callback(struct NumberWindow *number_window, void *context);
 
 static Window *window;
 static MenuLayer *menu_layer;
-static NumberWindow *brightness_window;
 
 static bool out_failed = false;
 static bool conn_timeout = false;
@@ -59,17 +55,10 @@ void colors_default_init(void) {
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
 
-	brightness_window = number_window_create("Brightness", (NumberWindowCallbacks) { .selected = brightness_select_callback }, NULL);
-	number_window_set_min(brightness_window, 0);
-	number_window_set_max(brightness_window, 100);
-	number_window_set_step_size(brightness_window, 1);
-	number_window_set_value(brightness_window, light()->color.brightness);
-
 	window_stack_push(window, true);
 }
 
 void colors_default_destroy(void) {
-	number_window_destroy(brightness_window);
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
 }
@@ -133,8 +122,6 @@ static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_
 			return 0;
 		case MENU_SECTION_COLORS:
 			return MENU_SECTION_ROWS_COLORS;
-		case MENU_SECTION_BRIGHTNESS:
-			return MENU_SECTION_ROWS_BRIGHTNESS;
 	}
 	return 0;
 }
@@ -144,7 +131,6 @@ static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uin
 		case MENU_SECTION_STATUS:
 			return 28;
 		case MENU_SECTION_COLORS:
-		case MENU_SECTION_BRIGHTNESS:
 			return MENU_CELL_BASIC_HEADER_HEIGHT;
 	}
 	return 0;
@@ -173,9 +159,6 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 			break;
 		case MENU_SECTION_COLORS:
 			menu_cell_basic_header_draw(ctx, cell_layer, "Default colors");
-			break;
-		case MENU_SECTION_BRIGHTNESS:
-			menu_cell_basic_header_draw(ctx, cell_layer, "Other");
 			break;
 	}
 }
@@ -213,9 +196,6 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
 					strcpy(label, "Pink");
 					break;
 			}
-			break;
-		case MENU_SECTION_BRIGHTNESS:
-			strcpy(label, "Brightness");
 			break;
 	}
 	graphics_context_set_text_color(ctx, GColorBlack);
@@ -264,17 +244,8 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 					break;
 			}
 			break;
-		case MENU_SECTION_BRIGHTNESS:
-			window_stack_push((Window*)brightness_window, true);
-			break;
 	}
 }
 
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-}
-
-static void brightness_select_callback(struct NumberWindow *number_window, void *context) {
-	light()->color.brightness = number_window_get_value(number_window);
-	light_update_color();
-	window_stack_pop(true);
 }
