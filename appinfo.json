@@ -16,7 +16,8 @@
 		"color_h": 3,
 		"color_s": 4,
 		"color_b": 5,
-		"error": 6
+		"tag": 6,
+		"error": 7
 	},
 	"resources": {
 		"media": [

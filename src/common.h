@@ -1,13 +1,13 @@
 #pragma once
 
 typedef struct {
-	int hue;
-	int saturation;
-	int brightness;
+	uint8_t hue;
+	uint8_t saturation;
+	uint8_t brightness;
 } Color;
 
 typedef struct {
-	int index;
+	uint8_t index;
 	char label[32];
 	char state[5];
 	Color color;
@@ -20,5 +20,6 @@ enum {
 	KEY_COLOR_H = 0x3,
 	KEY_COLOR_S = 0x4,
 	KEY_COLOR_B = 0x5,
-	KEY_ERROR = 0x6,
+	KEY_TAG = 0x6,
+	KEY_ERROR = 0x7,
 };

@@ -93,6 +93,7 @@ void colors_manual_in_received_handler(DictionaryIterator *iter) {
 	Tuple *color_h_tuple = dict_find(iter, KEY_COLOR_H);
 	Tuple *color_s_tuple = dict_find(iter, KEY_COLOR_S);
 	Tuple *color_b_tuple = dict_find(iter, KEY_COLOR_B);
+	Tuple *tag_tuple = dict_find(iter, KEY_TAG);
 	Tuple *error_tuple = dict_find(iter, KEY_ERROR);
 
 	if (error_tuple) {
@@ -110,12 +111,12 @@ void colors_manual_in_received_handler(DictionaryIterator *iter) {
 		conn_timeout = false;
 		conn_error = false;
 		server_error = false;
-		if (index_tuple->value->int16 == light()->index) {
+		if (index_tuple->value->uint8 == light()->index && !tag_tuple) {
 			strncpy(light()->label, label_tuple->value->cstring, sizeof(light()->label) - 1);
 			strncpy(light()->state, state_tuple->value->cstring, sizeof(light()->state) - 1);
-			if (color_h_tuple) light()->color.hue = color_h_tuple->value->int8;
-			if (color_s_tuple) light()->color.saturation = color_s_tuple->value->int8;
-			if (color_b_tuple) light()->color.brightness = color_b_tuple->value->int8;
+			if (color_h_tuple) light()->color.hue = color_h_tuple->value->uint8;
+			if (color_s_tuple) light()->color.saturation = color_s_tuple->value->uint8;
+			if (color_b_tuple) light()->color.brightness = color_b_tuple->value->uint8;
 		}
 		menu_layer_reload_data_and_mark_dirty(menu_layer);
 	}

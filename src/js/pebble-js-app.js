@@ -38,6 +38,9 @@ var appMessageQueue = {
 var LIFX = {
 	server: localStorage.getItem('server') || '',
 	lights: [],
+	tags: [],
+	tagsSent: false,
+	isTagRequest: false,
 
 	colors: {
 		makePostData: function(hue, saturation, brightness) {
@@ -76,11 +79,13 @@ var LIFX = {
 	},
 
 	getSelector: function(index) {
-		if (index == 29) return 'all';
+		if (index == 255) return 'all';
+		if (this.isTagRequest) return 'tag:' + this.tags[index];
 		return this.lights[index].id;
 	},
 
 	handleResponse: function(xhr, index) {
+		if (LIFX.isTagRequest) return;
 		appMessageQueue.clear();
 		try {
 			var res = JSON.parse(xhr.responseText);
@@ -97,6 +102,22 @@ var LIFX = {
 					LIFX.lights.push(res[r]);
 				}
 				appMessageQueue.add({index:i});
+				if (!LIFX.tagsSent) {
+					LIFX.lights.forEach(function(light) {
+						light.tags.forEach(function(tag) {
+							LIFX.tags.push(tag);
+						});
+					});
+					LIFX.tags = LIFX.tags.filter(function (e, i, arr) {
+						return arr.lastIndexOf(e) === i;
+					});
+					i = 0;
+					for (var t in LIFX.tags) {
+						appMessageQueue.add({index:i++, label:LIFX.tags[t], state:'', tag:true});
+					}
+					appMessageQueue.add({index:i, tag:true});
+					LIFX.tagsSent = true;
+				}
 			} else {
 				label = res.label ? res.label.substring(0,32) : res.id.substring(0,32);
 				state = res.on ? 'ON' : 'OFF';
@@ -133,6 +154,7 @@ var LIFX = {
 		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/toggle.json';
 		LIFX.http.makeRequest('PUT', url, null, function(xhr) {
 			LIFX.handleResponse(xhr, index);
+			setTimeout(function() { LIFX.refresh(); }, 1000); // temporary fix for the api not returning updated values
 		}, function(e) {
 			LIFX.error(e);
 		});
@@ -167,6 +189,7 @@ var LIFX = {
 
 	http: {
 		makeRequest: function(method, url, data, cb, fb) {
+			console.log(method + ' ' + url + ' ' + data);
 			var xhr = new XMLHttpRequest();
 			xhr.open(method, url, true);
 			xhr.onload = function() { cb(xhr); };
@@ -186,12 +209,12 @@ Pebble.addEventListener('ready', function(e) {
 Pebble.addEventListener('appmessage', function(e) {
 	console.log('AppMessage received: ' + JSON.stringify(e.payload));
 	if (isset(e.payload.index)) {
+		LIFX.isTagRequest = e.payload.tag || false;
 		if (isset(e.payload.color_h) && isset(e.payload.color_s) && isset(e.payload.color_b)) {
 			LIFX.color(e.payload.index, e.payload.color_h, e.payload.color_s, e.payload.color_b);
 		} else {
 			LIFX.toggle(e.payload.index);
 		}
-		setTimeout(function() { LIFX.refresh(); }, 1000); // temporary fix for the api not returning updated values
 	} else {
 		LIFX.refresh();
 	}
