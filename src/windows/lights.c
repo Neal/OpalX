@@ -183,7 +183,7 @@ static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uin
 		case MENU_SECTION_ALL:
 			return MENU_CELL_BASIC_HEADER_HEIGHT;
 		case MENU_SECTION_LIGHTS:
-			return 1; // this should be 0 but MenuLayer breaks if we set it to 0. <<< TODO
+			return num_lights ? 2 : 0;
 		default:
 			return 0;
 	}

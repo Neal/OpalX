@@ -15,13 +15,13 @@
 
 #define MENU_SECTION_ROWS_STATUS 0
 #define MENU_SECTION_ROWS_TOGGLE 1
-#define MENU_SECTION_ROWS_COLORS 3
+#define MENU_SECTION_ROWS_COLORS 2
 
 #define MENU_ROW_TOGGLE 0
 
-#define MENU_ROW_COLORS_CUSTOM 0
-#define MENU_ROW_COLORS_DEFAULT 1
-#define MENU_ROW_COLORS_MANUAL 2
+#define MENU_ROW_COLORS_CUSTOM 99
+#define MENU_ROW_COLORS_DEFAULT 0
+#define MENU_ROW_COLORS_MANUAL 1
 
 static void refresh();
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
