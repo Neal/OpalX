@@ -2,7 +2,6 @@
 #include "colors_manual.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "../progress_bar.h"
 #include "lights.h"
 
 #define MENU_NUM_SECTIONS 2
