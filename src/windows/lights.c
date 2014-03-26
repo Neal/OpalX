@@ -12,7 +12,7 @@
 
 #define MENU_SECTION_ROWS_ALL 1
 
-#define MAX_LIGHTS 64
+#define MAX_LIGHTS 128
 
 #define ALL_LIGHTS_INDEX 255
 
