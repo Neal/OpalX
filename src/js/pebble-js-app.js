@@ -41,6 +41,7 @@ var LIFX = {
 	tags: [],
 	tagsSent: false,
 	isTagRequest: false,
+	index: 255,
 
 	colors: {
 		makePostData: function(hue, saturation, brightness) {
@@ -78,22 +79,20 @@ var LIFX = {
 		appMessageQueue.send();
 	},
 
-	getSelector: function(index) {
-		if (index == 255) return 'all';
-		if (this.isTagRequest) return 'tag:' + this.tags[index];
-		return this.lights[index].id;
+	getSelector: function() {
+		if (this.index == 255) return 'all';
+		if (this.isTagRequest) return 'tag:' + this.tags[this.index];
+		return this.lights[this.index].id;
 	},
 
-	handleResponse: function(xhr, index) {
-		if (LIFX.isTagRequest) return;
-		appMessageQueue.clear();
+	handleResponse: function(xhr) {
 		try {
 			var res = JSON.parse(xhr.responseText);
 			if (res instanceof Array) {
 				LIFX.lights = [];
 				var i = 0;
 				for (var r in res) {
-					label = res[r].label ? res[r].label.substring(0,32) : res[r].id.substring(0,32);
+					label = res[r].label ? res[r].label.substring(0,18) : res[r].id.substring(0,18);
 					state = res[r].on ? 'ON' : 'OFF';
 					color_h = LIFX.colors.hue.toFake(res[r].color.hue) || 0;
 					color_s = LIFX.colors.saturation.toFake(res[r].color.saturation) || 0;
@@ -119,19 +118,19 @@ var LIFX = {
 					LIFX.tagsSent = true;
 				}
 			} else {
-				label = res.label ? res.label.substring(0,32) : res.id.substring(0,32);
+				label = res.label ? res.label.substring(0,18) : res.id.substring(0,18);
 				state = res.on ? 'ON' : 'OFF';
 				color_h = LIFX.colors.hue.toFake(res.color.hue) || 0;
 				color_s = LIFX.colors.saturation.toFake(res.color.saturation) || 0;
 				color_b = LIFX.colors.brightness.toFake(res.color.brightness) || 0;
-				appMessageQueue.add({index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
+				appMessageQueue.add({index:LIFX.index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 				appMessageQueue.add({index:LIFX.lights.length});
 			}
 		} catch(e) {
 			console.log(JSON.stringify(e));
 			try {
-				var label = LIFX.lights[index].label ? LIFX.lights[index].label.substring(0,32) : LIFX.lights[index].id.substring(0,32);
-				appMessageQueue.add({index:index, label:label, state:'Err'});
+				var label = LIFX.lights[LIFX.index].label ? LIFX.lights[LIFX.index].label.substring(0,18) : LIFX.lights[LIFX.index].id.substring(0,18);
+				appMessageQueue.add({index:LIFX.index, label:label, state:'Err'});
 				appMessageQueue.add({index:LIFX.lights.length});
 			} catch(ee) {
 				appMessageQueue.add({error:'server_error'});
@@ -140,64 +139,39 @@ var LIFX = {
 		appMessageQueue.send();
 	},
 
-	color: function(index, hue, saturation, brightness) {
-		var data = JSON.stringify(LIFX.colors.makePostData(hue, saturation, brightness));
-		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/color.json';
-		LIFX.http.makeRequest('PUT', url, data, function(xhr) {
-			LIFX.handleResponse(xhr, index);
-		}, function(e) {
-			LIFX.error(e);
-		});
+	color: function(hue, saturation, brightness) {
+		var data = JSON.stringify(this.colors.makePostData(hue, saturation, brightness));
+		this.makeAPIRequest('PUT', '/color.json', data, this.handleResponse, this.error);
 	},
 
-	toggle: function(index) {
-		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/toggle.json';
-		LIFX.http.makeRequest('PUT', url, null, function(xhr) {
-			LIFX.handleResponse(xhr, index);
-			setTimeout(function() { LIFX.refresh(); }, 1000); // temporary fix for the api not returning updated values
-		}, function(e) {
-			LIFX.error(e);
-		});
+	toggle: function() {
+		this.makeAPIRequest('PUT', '/toggle.json', null, this.handleResponse, this.error);
+		setTimeout(function() { LIFX.refresh(); }, 1000); // temporary fix for the api not returning updated values
 	},
 
-	on: function(index) {
-		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/on.json';
-		LIFX.http.makeRequest('PUT', url, null, function(xhr) {
-			LIFX.handleResponse(xhr, index);
-		}, function(e) {
-			LIFX.error(e);
-		});
+	on: function() {
+		this.makeAPIRequest('PUT', '/on.json', null, this.handleResponse, this.error);
 	},
 
-	off: function(index) {
-		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector(index)) + '/off.json';
-		LIFX.http.makeRequest('PUT', url, null, function(xhr) {
-			LIFX.handleResponse(xhr, index);
-		}, function(e) {
-			LIFX.error(e);
-		});
+	off: function() {
+		this.makeAPIRequest('PUT', '/off.json', null, this.handleResponse, this.error);
 	},
 
 	refresh: function() {
-		var url = this.server + '/lights.json';
-		LIFX.http.makeRequest('GET', url, null, function(xhr) {
-			LIFX.handleResponse(xhr);
-		}, function(e) {
-			LIFX.error(e);
-		});
+		this.index = 255;
+		this.makeAPIRequest('GET', '.json', null, this.handleResponse, this.error);
 	},
 
-	http: {
-		makeRequest: function(method, url, data, cb, fb) {
-			console.log(method + ' ' + url + ' ' + data);
-			var xhr = new XMLHttpRequest();
-			xhr.open(method, url, true);
-			xhr.onload = function() { cb(xhr); };
-			xhr.onerror = function() { fb('error'); };
-			xhr.ontimeout = function() { fb('timeout'); };
-			xhr.timeout = 10000;
-			xhr.send(data);
-		}
+	makeAPIRequest: function(method, endpoint, data, cb, fb) {
+		var url = this.server + '/lights/' + encodeURIComponent(this.getSelector()) + endpoint;
+		console.log(method + ' ' + url + ' ' + data);
+		var xhr = new XMLHttpRequest();
+		xhr.open(method, url, true);
+		xhr.onload = function() { cb(xhr); };
+		xhr.onerror = function() { fb('error'); };
+		xhr.ontimeout = function() { fb('timeout'); };
+		xhr.timeout = 10000;
+		xhr.send(data);
 	}
 };
 
@@ -210,10 +184,11 @@ Pebble.addEventListener('appmessage', function(e) {
 	console.log('AppMessage received: ' + JSON.stringify(e.payload));
 	if (isset(e.payload.index)) {
 		LIFX.isTagRequest = e.payload.tag || false;
+		LIFX.index = e.payload.index;
 		if (isset(e.payload.color_h) && isset(e.payload.color_s) && isset(e.payload.color_b)) {
-			LIFX.color(e.payload.index, e.payload.color_h, e.payload.color_s, e.payload.color_b);
+			LIFX.color(e.payload.color_h, e.payload.color_s, e.payload.color_b);
 		} else {
-			LIFX.toggle(e.payload.index);
+			LIFX.toggle();
 		}
 	} else {
 		LIFX.refresh();

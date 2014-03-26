@@ -12,7 +12,7 @@
 
 #define MENU_SECTION_ROWS_ALL 1
 
-#define MAX_LIGHTS 30
+#define MAX_LIGHTS 64
 
 #define ALL_LIGHTS_INDEX 255
 
@@ -64,8 +64,6 @@ void lights_init(void) {
 
 	all_lights.index = ALL_LIGHTS_INDEX;
 	strncpy(all_lights.label, "All Lights", sizeof(all_lights.label) - 1);
-	strncpy(all_lights.state, "", sizeof(all_lights.state) - 1);
-	all_lights.color = (Color) { .hue = 50, .saturation = 50, .brightness = 50 };
 
 	options_init();
 }
@@ -149,7 +147,8 @@ Light* light() {
 }
 
 void light_toggle() {
-	strncpy(light()->state, "•••", sizeof(light()->state) - 1);
+	if (selected_index != ALL_LIGHTS_INDEX && !tag_selected)
+		strncpy(light()->state, "...", sizeof(light()->state) - 1);
 	menu_layer_reload_data_and_mark_dirty(menu_layer);
 	Tuplet index_tuple = TupletInteger(KEY_INDEX, light()->index);
 	Tuplet tag_tuple = TupletInteger(KEY_TAG, tag_selected);
@@ -255,7 +254,7 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
 			} else if (num_lights == 0) {
 				graphics_draw_text(ctx, "Loading lights...", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 			} else {
-				graphics_draw_text(ctx, "All Lights", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+				graphics_draw_text(ctx, all_lights.label, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 			}
 			break;
 		case MENU_SECTION_LIGHTS:

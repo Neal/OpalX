@@ -8,7 +8,7 @@ typedef struct {
 
 typedef struct {
 	uint8_t index;
-	char label[32];
+	char label[18];
 	char state[5];
 	Color color;
 } Light;

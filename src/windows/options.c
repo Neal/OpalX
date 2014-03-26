@@ -23,7 +23,6 @@
 #define MENU_ROW_COLORS_DEFAULT 0
 #define MENU_ROW_COLORS_MANUAL 1
 
-static void refresh();
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
 static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
@@ -35,11 +34,6 @@ static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *c
 
 static Window *window;
 static MenuLayer *menu_layer;
-
-static bool out_failed = false;
-static bool conn_timeout = false;
-static bool conn_error = false;
-static bool server_error = false;
 
 void options_init(void) {
 	window = window_create();
@@ -76,47 +70,14 @@ void options_show(void) {
 }
 
 void options_in_received_handler(DictionaryIterator *iter) {
-	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
-	Tuple *label_tuple = dict_find(iter, KEY_LABEL);
-	Tuple *state_tuple = dict_find(iter, KEY_STATE);
-	Tuple *color_h_tuple = dict_find(iter, KEY_COLOR_H);
-	Tuple *color_s_tuple = dict_find(iter, KEY_COLOR_S);
-	Tuple *color_b_tuple = dict_find(iter, KEY_COLOR_B);
-	Tuple *tag_tuple = dict_find(iter, KEY_TAG);
-	Tuple *error_tuple = dict_find(iter, KEY_ERROR);
-
-	if (error_tuple) {
-		if (strcmp(error_tuple->value->cstring, "timeout") != 0) {
-			conn_timeout = true;
-		} else if (strcmp(error_tuple->value->cstring, "error") != 0) {
-			conn_error = true;
-		} else if (strcmp(error_tuple->value->cstring, "server_error") != 0) {
-			server_error = true;
-		}
-		menu_layer_reload_data_and_mark_dirty(menu_layer);
-	}
-	else if (index_tuple && label_tuple && state_tuple) {
-		out_failed = false;
-		conn_timeout = false;
-		conn_error = false;
-		server_error = false;
-		if (index_tuple->value->uint8 == light()->index && !tag_tuple) {
-			strncpy(light()->label, label_tuple->value->cstring, sizeof(light()->label) - 1);
-			strncpy(light()->state, state_tuple->value->cstring, sizeof(light()->state) - 1);
-			if (color_h_tuple) light()->color.hue = color_h_tuple->value->uint8;
-			if (color_s_tuple) light()->color.saturation = color_s_tuple->value->uint8;
-			if (color_b_tuple) light()->color.brightness = color_b_tuple->value->uint8;
-		}
-		menu_layer_reload_data_and_mark_dirty(menu_layer);
-	}
+	lights_in_received_handler(iter);
+	menu_layer_reload_data_and_mark_dirty(menu_layer);
 }
 
 void options_out_sent_handler(DictionaryIterator *sent) {
 }
 
 void options_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason) {
-	out_failed = true;
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
 }
 
 bool options_is_on_top() {
@@ -125,16 +86,6 @@ bool options_is_on_top() {
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
-
-static void refresh() {
-	out_failed = false;
-	conn_timeout = false;
-	conn_error = false;
-	server_error = false;
-	menu_layer_set_selected_index(menu_layer, (MenuIndex) { .row = 0, .section = 0 }, MenuRowAlignBottom, false);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
-	app_message_outbox_send();
-}
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {
 	return MENU_NUM_SECTIONS;
@@ -172,18 +123,8 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 	graphics_context_set_text_color(ctx, GColorBlack);
 	switch (section_index) {
 		case MENU_SECTION_STATUS:
-			if (out_failed) {
-				graphics_draw_text(ctx, "Phone unreachable!", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 0 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-			} else if (conn_timeout) {
-				graphics_draw_text(ctx, "Connection timed out!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 0 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-			} else if (conn_error) {
-				graphics_draw_text(ctx, "HTTP Error!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 0 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-			} else if (server_error) {
-				graphics_draw_text(ctx, "Server error!", fonts_get_system_font(FONT_KEY_GOTHIC_18), (GRect) { .origin = { 4, 0 }, .size = { PEBBLE_WIDTH - 8, 44 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-			} else {
-				graphics_draw_text(ctx, light()->label, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { 100, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
-				graphics_draw_text(ctx, light()->state, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 110, -3 }, .size = { 30, 26 } }, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
-			}
+			graphics_draw_text(ctx, light()->label, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { 100, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+			graphics_draw_text(ctx, light()->state, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 110, -3 }, .size = { 30, 26 } }, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 			break;
 		case MENU_SECTION_COLORS:
 			graphics_draw_text(ctx, "Colors", fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD), (GRect) { .origin = { 4, 0 }, .size = { 60, 18 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
@@ -245,5 +186,4 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 }
 
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-	refresh();
 }
