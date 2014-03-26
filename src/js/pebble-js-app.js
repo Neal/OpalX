@@ -146,7 +146,6 @@ var LIFX = {
 
 	toggle: function() {
 		this.makeAPIRequest('PUT', '/toggle.json', null, this.handleResponse, this.error);
-		setTimeout(function() { LIFX.refresh(); }, 1000); // temporary fix for the api not returning updated values
 	},
 
 	on: function() {
