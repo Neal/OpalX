@@ -56,19 +56,16 @@ void colors_manual_init(void) {
 	number_window_set_min(number_window[HUE], 0);
 	number_window_set_max(number_window[HUE], 100);
 	number_window_set_step_size(number_window[HUE], 1);
-	number_window_set_value(number_window[HUE], light()->color.hue);
 
 	number_window[SATURATION] = number_window_create("Saturation", (NumberWindowCallbacks) { .selected = saturation_select_callback }, NULL);
 	number_window_set_min(number_window[SATURATION], 0);
 	number_window_set_max(number_window[SATURATION], 100);
 	number_window_set_step_size(number_window[SATURATION], 1);
-	number_window_set_value(number_window[SATURATION], light()->color.saturation);
 
 	number_window[BRIGHTNESS] = number_window_create("Brightness", (NumberWindowCallbacks) { .selected = brightness_select_callback }, NULL);
 	number_window_set_min(number_window[BRIGHTNESS], 0);
 	number_window_set_max(number_window[BRIGHTNESS], 100);
 	number_window_set_step_size(number_window[BRIGHTNESS], 1);
-	number_window_set_value(number_window[BRIGHTNESS], light()->color.brightness);
 }
 
 void colors_manual_destroy(void) {
@@ -167,12 +164,15 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		case MENU_SECTION_MANUAL:
 			switch (cell_index->row) {
 				case MENU_ROW_MANUAL_HUE:
+					number_window_set_value(number_window[HUE], light()->color.hue);
 					window_stack_push((Window*)number_window[HUE], true);
 					break;
 				case MENU_ROW_MANUAL_SATURATION:
+					number_window_set_value(number_window[SATURATION], light()->color.saturation);
 					window_stack_push((Window*)number_window[SATURATION], true);
 					break;
 				case MENU_ROW_MANUAL_BRIGHTNESS:
+					number_window_set_value(number_window[BRIGHTNESS], light()->color.brightness);
 					window_stack_push((Window*)number_window[BRIGHTNESS], true);
 					break;
 			}
