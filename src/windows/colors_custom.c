@@ -2,7 +2,7 @@
 #include "colors_custom.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "lights.h"
+#include "lightlist.h"
 
 #define MENU_NUM_SECTIONS 2
 
@@ -11,7 +11,7 @@
 
 #define MAX_CUSTOM_COLORS 20
 
-static Light custom_colors[MAX_CUSTOM_COLORS];
+static Light* custom_colors;
 
 static void refresh();
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
@@ -26,8 +26,7 @@ static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *c
 static Window *window;
 static MenuLayer *menu_layer;
 
-static int num_custom_colors;
-static bool no_custom_colors = true;
+static int num_custom_colors = 0;
 
 void colors_custom_init(void) {
 	window = window_create();
@@ -57,7 +56,7 @@ void colors_custom_show(void) {
 }
 
 void colors_custom_in_received_handler(DictionaryIterator *iter) {
-	lights_in_received_handler(iter);
+	lightlist_in_received_handler(iter);
 	menu_layer_reload_data_and_mark_dirty(menu_layer);
 }
 
@@ -74,11 +73,6 @@ bool colors_custom_is_on_top() {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static void refresh() {
-	num_custom_colors = 0;
-	no_custom_colors = false;
-	menu_layer_set_selected_index(menu_layer, (MenuIndex) { .row = 0, .section = 0 }, MenuRowAlignBottom, false);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
-	app_message_outbox_send();
 }
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {

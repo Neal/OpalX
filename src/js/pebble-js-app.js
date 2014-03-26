@@ -2,9 +2,7 @@ var appMessageQueue = {
 	queue: [],
 	numTries: 0,
 	maxTries: 5,
-	add: function(obj) {
-		this.queue.push(obj);
-	},
+	working: false,
 	clear: function() {
 		this.queue = [];
 	},
@@ -14,15 +12,20 @@ var appMessageQueue = {
 	nextMessage: function() {
 		return this.isEmpty() ? {} : this.queue[0];
 	},
-	send: function() {
+	send: function(obj) {
+		if (obj) this.queue.push(obj);
+		if (this.working) return;
 		if (this.queue.length > 0) {
+			this.working = true;
 			var ack = function() {
 				appMessageQueue.numTries = 0;
 				appMessageQueue.queue.shift();
+				appMessageQueue.working = false;
 				appMessageQueue.send();
 			};
 			var nack = function() {
 				appMessageQueue.numTries++;
+				appMessageQueue.working = false;
 				appMessageQueue.send();
 			};
 			if (this.numTries >= this.maxTries) {
@@ -35,39 +38,52 @@ var appMessageQueue = {
 	}
 };
 
+var TYPE = {
+	ERROR: 0,
+	LIGHT: 1,
+	TAG: 2,
+	ALL: 3
+};
+
+var METHOD = {
+	BEGIN: 0,
+	DATA: 1,
+	END: 2
+};
+
 var LIFX = {
 	server: localStorage.getItem('server') || '',
 	lights: [],
 	tags: [],
-	tagsSent: false,
-	isTagRequest: false,
-	index: 255,
+	type: null,
+	method: null,
+	index: 0,
 
 	colors: {
 		makePostData: function(hue, saturation, brightness) {
-			return {hue:LIFX.colors.hue.toReal(hue), saturation:LIFX.colors.saturation.toReal(saturation), brightness:LIFX.colors.brightness.toReal(brightness)};
+			return {hue:LIFX.colors.hue.deserialize(hue), saturation:LIFX.colors.saturation.deserialize(saturation), brightness:LIFX.colors.brightness.deserialize(brightness)};
 		},
 		hue: {
-			toFake: function(val) {
+			serialize: function(val) {
 				return parseInt((val / 360) * 100);
 			},
-			toReal: function(val) {
+			deserialize: function(val) {
 				return val * 3.6;
 			}
 		},
 		saturation: {
-			toFake: function(val) {
+			serialize: function(val) {
 				return parseInt(val * 100);
 			},
-			toReal: function(val) {
+			deserialize: function(val) {
 				return val / 100;
 			}
 		},
 		brightness: {
-			toFake: function(val) {
+			serialize: function(val) {
 				return parseInt(val * 100);
 			},
-			toReal: function(val) {
+			deserialize: function(val) {
 				return val / 100;
 			}
 		}
@@ -75,33 +91,58 @@ var LIFX = {
 
 	error: function(error) {
 		appMessageQueue.clear();
-		appMessageQueue.add({error:error});
-		appMessageQueue.send();
+		appMessageQueue.send({type:TYPE.ERROR, label:error});
 	},
 
 	getSelector: function() {
-		if (this.index == 255) return 'all';
-		if (this.isTagRequest) return 'tag:' + this.tags[this.index];
-		return this.lights[this.index].id;
+		switch (this.type) {
+			default:
+			case TYPE.ALL:
+				return 'all';
+			case TYPE.LIGHT:
+				return this.lights[this.index].id;
+			case TYPE.TAG:
+				return 'tag:' + this.tags[this.index];
+		}
+	},
+
+	sendLight: function(index) {
+		label = this.lights[index].label ? this.lights[index].label.substring(0,18) : this.lights[index].id;
+		state = this.lights[index].on ? 'ON' : 'OFF';
+		color_h = LIFX.colors.hue.serialize(this.lights[index].color.hue) || 0;
+		color_s = LIFX.colors.saturation.serialize(this.lights[index].color.saturation) || 0;
+		color_b = LIFX.colors.brightness.serialize(this.lights[index].color.brightness) || 0;
+		appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.DATA, index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
+	},
+
+	sendLights: function() {
+		appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.BEGIN, index:LIFX.lights.length});
+		for (var i = 0; i < LIFX.lights.length; i++) {
+			this.sendLight(i);
+		}
+		appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.END});
+	},
+
+	sendTags: function() {
+		appMessageQueue.send({type:TYPE.TAG, method:METHOD.BEGIN, index:LIFX.tags.length});
+		for (var i = 0; i < LIFX.tags.length; i++) {
+			appMessageQueue.send({type:TYPE.TAG, method:METHOD.DATA, index:i, label:LIFX.tags[i]});
+		}
+		appMessageQueue.send({type:TYPE.TAG, method:METHOD.END});
 	},
 
 	handleResponse: function(xhr) {
 		try {
 			var res = JSON.parse(xhr.responseText);
+			console.log(JSON.stringify(res));
 			if (res instanceof Array) {
 				LIFX.lights = [];
-				var i = 0;
-				for (var r in res) {
-					label = res[r].label ? res[r].label.substring(0,18) : res[r].id.substring(0,18);
-					state = res[r].on ? 'ON' : 'OFF';
-					color_h = LIFX.colors.hue.toFake(res[r].color.hue) || 0;
-					color_s = LIFX.colors.saturation.toFake(res[r].color.saturation) || 0;
-					color_b = LIFX.colors.brightness.toFake(res[r].color.brightness) || 0;
-					appMessageQueue.add({index:i++, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
-					LIFX.lights.push(res[r]);
-				}
-				appMessageQueue.add({index:i});
-				if (!LIFX.tagsSent) {
+				res.forEach(function(light) {
+					LIFX.lights.push(light);
+				});
+				LIFX.sendLights();
+				if (LIFX.tags.length === 0) {
+					LIFX.tags = [];
 					LIFX.lights.forEach(function(light) {
 						light.tags.forEach(function(tag) {
 							LIFX.tags.push(tag);
@@ -110,38 +151,26 @@ var LIFX = {
 					LIFX.tags = LIFX.tags.filter(function (e, i, arr) {
 						return arr.lastIndexOf(e) === i;
 					});
-					i = 0;
-					for (var t in LIFX.tags) {
-						appMessageQueue.add({index:i++, label:LIFX.tags[t], state:'', tag:true});
-					}
-					appMessageQueue.add({index:i, tag:true});
-					LIFX.tagsSent = true;
+					LIFX.sendTags();
 				}
 			} else {
-				label = res.label ? res.label.substring(0,18) : res.id.substring(0,18);
-				state = res.on ? 'ON' : 'OFF';
-				color_h = LIFX.colors.hue.toFake(res.color.hue) || 0;
-				color_s = LIFX.colors.saturation.toFake(res.color.saturation) || 0;
-				color_b = LIFX.colors.brightness.toFake(res.color.brightness) || 0;
-				appMessageQueue.add({index:LIFX.index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
-				appMessageQueue.add({index:LIFX.lights.length});
+				for (var i = 0; i < LIFX.lights.length; i++) {
+					if (LIFX.lights[i].id == res.id) break;
+				}
+				LIFX.lights[i] = res;
+				LIFX.sendLight(i);
+				appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.END});
 			}
 		} catch(e) {
 			console.log(JSON.stringify(e));
-			try {
-				var label = LIFX.lights[LIFX.index].label ? LIFX.lights[LIFX.index].label.substring(0,18) : LIFX.lights[LIFX.index].id.substring(0,18);
-				appMessageQueue.add({index:LIFX.index, label:label, state:'Err'});
-				appMessageQueue.add({index:LIFX.lights.length});
-			} catch(ee) {
-				appMessageQueue.add({error:'server_error'});
-			}
+			appMessageQueue.send({type:TYPE.ERROR, label:'Server error!'});
 		}
-		appMessageQueue.send();
 	},
 
 	color: function(hue, saturation, brightness) {
 		var data = JSON.stringify(this.colors.makePostData(hue, saturation, brightness));
 		this.makeAPIRequest('PUT', '/color.json', data, this.handleResponse, this.error);
+		setTimeout(function() { LIFX.refresh(); }, 2000);
 	},
 
 	toggle: function() {
@@ -157,7 +186,7 @@ var LIFX = {
 	},
 
 	refresh: function() {
-		this.index = 255;
+		this.type = TYPE.ALL;
 		this.makeAPIRequest('GET', '.json', null, this.handleResponse, this.error);
 	},
 
@@ -167,23 +196,23 @@ var LIFX = {
 		var xhr = new XMLHttpRequest();
 		xhr.open(method, url, true);
 		xhr.onload = function() { cb(xhr); };
-		xhr.onerror = function() { fb('error'); };
-		xhr.ontimeout = function() { fb('timeout'); };
+		xhr.onerror = function() { fb('Server error!'); };
+		xhr.ontimeout = function() { fb('Connection timed out!'); };
 		xhr.timeout = 10000;
 		xhr.send(data);
 	}
 };
 
 Pebble.addEventListener('ready', function(e) {
-	if (!LIFX.server) return LIFX.error('no_server_set');
+	if (!LIFX.server) return LIFX.error('No server set');
 	LIFX.refresh();
 });
 
 Pebble.addEventListener('appmessage', function(e) {
 	console.log('AppMessage received: ' + JSON.stringify(e.payload));
 	if (isset(e.payload.index)) {
-		LIFX.isTagRequest = e.payload.tag || false;
-		LIFX.index = e.payload.index;
+		LIFX.type = e.payload.type || null;
+		LIFX.index = e.payload.index || 0;
 		if (isset(e.payload.color_h) && isset(e.payload.color_s) && isset(e.payload.color_b)) {
 			LIFX.color(e.payload.color_h, e.payload.color_s, e.payload.color_b);
 		} else {

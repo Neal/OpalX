@@ -2,7 +2,7 @@
 #include "colors_manual.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "lights.h"
+#include "lightlist.h"
 
 #define MENU_NUM_SECTIONS 2
 
@@ -81,7 +81,7 @@ void colors_manual_show(void) {
 }
 
 void colors_manual_in_received_handler(DictionaryIterator *iter) {
-	lights_in_received_handler(iter);
+	lightlist_in_received_handler(iter);
 	menu_layer_reload_data_and_mark_dirty(menu_layer);
 }
 

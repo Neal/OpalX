@@ -14,12 +14,25 @@ typedef struct {
 } Light;
 
 enum {
-	KEY_INDEX = 0x0,
-	KEY_LABEL = 0x1,
-	KEY_STATE = 0x2,
-	KEY_COLOR_H = 0x3,
-	KEY_COLOR_S = 0x4,
-	KEY_COLOR_B = 0x5,
-	KEY_TAG = 0x6,
-	KEY_ERROR = 0x7,
+	KEY_TYPE,
+	KEY_METHOD,
+	KEY_INDEX,
+	KEY_LABEL,
+	KEY_STATE,
+	KEY_COLOR_H,
+	KEY_COLOR_S,
+	KEY_COLOR_B,
+};
+
+enum {
+	KEY_TYPE_ERROR,
+	KEY_TYPE_LIGHT,
+	KEY_TYPE_TAG,
+	KEY_TYPE_ALL,
+};
+
+enum {
+	KEY_METHOD_BEGIN,
+	KEY_METHOD_DATA,
+	KEY_METHOD_END,
 };

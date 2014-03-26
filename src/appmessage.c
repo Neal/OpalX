@@ -1,8 +1,8 @@
 #include <pebble.h>
 #include "appmessage.h"
 #include "common.h"
-#include "windows/lights.h"
-#include "windows/options.h"
+#include "windows/lightlist.h"
+#include "windows/lightmenu.h"
 #include "windows/colors_custom.h"
 #include "windows/colors_default.h"
 #include "windows/colors_manual.h"
@@ -21,10 +21,10 @@ void appmessage_init(void) {
 }
 
 static void in_received_handler(DictionaryIterator *iter, void *context) {
-	if (lights_is_on_top()) {
-		lights_in_received_handler(iter);
-	} else if (options_is_on_top()) {
-		options_in_received_handler(iter);
+	if (lightlist_is_on_top()) {
+		lightlist_in_received_handler(iter);
+	} else if (lightmenu_is_on_top()) {
+		lightmenu_in_received_handler(iter);
 	} else if (colors_custom_is_on_top()) {
 		colors_custom_in_received_handler(iter);
 	} else if (colors_default_is_on_top()) {
@@ -38,10 +38,10 @@ static void in_dropped_handler(AppMessageResult reason, void *context) {
 }
 
 static void out_sent_handler(DictionaryIterator *sent, void *context) {
-	if (lights_is_on_top()) {
-		lights_out_sent_handler(sent);
-	} else if (options_is_on_top()) {
-		options_out_sent_handler(sent);
+	if (lightlist_is_on_top()) {
+		lightlist_out_sent_handler(sent);
+	} else if (lightmenu_is_on_top()) {
+		lightmenu_out_sent_handler(sent);
 	} else if (colors_custom_is_on_top()) {
 		colors_custom_out_sent_handler(sent);
 	} else if (colors_default_is_on_top()) {
@@ -52,10 +52,10 @@ static void out_sent_handler(DictionaryIterator *sent, void *context) {
 }
 
 static void out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context) {
-	if (lights_is_on_top()) {
-		lights_out_failed_handler(failed, reason);
-	} else if (options_is_on_top()) {
-		options_out_failed_handler(failed, reason);
+	if (lightlist_is_on_top()) {
+		lightlist_out_failed_handler(failed, reason);
+	} else if (lightmenu_is_on_top()) {
+		lightmenu_out_failed_handler(failed, reason);
 	} else if (colors_custom_is_on_top()) {
 		colors_custom_out_failed_handler(failed, reason);
 	} else if (colors_default_is_on_top()) {

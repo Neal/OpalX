@@ -1,8 +1,8 @@
 #include <pebble.h>
-#include "options.h"
+#include "lightmenu.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "lights.h"
+#include "lightlist.h"
 #include "colors_custom.h"
 #include "colors_default.h"
 #include "colors_manual.h"
@@ -35,7 +35,7 @@ static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *c
 static Window *window;
 static MenuLayer *menu_layer;
 
-void options_init(void) {
+void lightmenu_init(void) {
 	window = window_create();
 
 	menu_layer = menu_layer_create_fullscreen(window);
@@ -57,7 +57,7 @@ void options_init(void) {
 	colors_manual_init();
 }
 
-void options_destroy(void) {
+void lightmenu_destroy(void) {
 	colors_custom_destroy();
 	colors_default_destroy();
 	colors_manual_destroy();
@@ -65,22 +65,22 @@ void options_destroy(void) {
 	window_destroy_safe(window);
 }
 
-void options_show(void) {
+void lightmenu_show(void) {
 	window_stack_push(window, true);
 }
 
-void options_in_received_handler(DictionaryIterator *iter) {
-	lights_in_received_handler(iter);
+void lightmenu_in_received_handler(DictionaryIterator *iter) {
+	lightlist_in_received_handler(iter);
 	menu_layer_reload_data_and_mark_dirty(menu_layer);
 }
 
-void options_out_sent_handler(DictionaryIterator *sent) {
+void lightmenu_out_sent_handler(DictionaryIterator *sent) {
 }
 
-void options_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason) {
+void lightmenu_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason) {
 }
 
-bool options_is_on_top() {
+bool lightmenu_is_on_top() {
 	return window == window_stack_get_top_window();
 }
 

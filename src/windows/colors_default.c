@@ -2,7 +2,7 @@
 #include "colors_default.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "lights.h"
+#include "lightlist.h"
 
 #define MENU_NUM_SECTIONS 2
 
@@ -61,7 +61,7 @@ void colors_default_show(void) {
 }
 
 void colors_default_in_received_handler(DictionaryIterator *iter) {
-	lights_in_received_handler(iter);
+	lightlist_in_received_handler(iter);
 	menu_layer_reload_data_and_mark_dirty(menu_layer);
 }
 
@@ -119,7 +119,7 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 }
 
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
-	char label[13] = "";
+	char label[8] = "";
 	switch (cell_index->section) {
 		case MENU_SECTION_COLORS:
 			switch (cell_index->row) {
