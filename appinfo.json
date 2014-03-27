@@ -4,7 +4,7 @@
 	"longName": "PebblFX",
 	"companyName": "Neal",
 	"versionCode": 1,
-	"versionLabel": "0.1",
+	"versionLabel": "1.0",
 	"capabilities": [ "configurable" ],
 	"watchapp": {
 		"watchface": false
