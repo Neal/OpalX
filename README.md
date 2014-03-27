@@ -1,4 +1,4 @@
-# PebbLIFX
+# PebblFX
 
 LIFX remote app for the Pebble Smartwatch. It uses with the [LIFX HTTP API](https://github.com/chendo/lifx-http), powered by the [LIFX GEM](https://github.com/LIFX/lifx-gem).
 
@@ -17,4 +17,4 @@ LIFX remote app for the Pebble Smartwatch. It uses with the [LIFX HTTP API](http
 
 ## License
 
-PebbLIFX is available under the MIT license. See the LICENSE file for more info.
+PebblFX is available under the MIT license. See the LICENSE file for more info.

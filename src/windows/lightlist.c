@@ -258,7 +258,7 @@ static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuI
 
 static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
 	if (section_index == MENU_SECTION_ALL) {
-		menu_cell_basic_header_draw(ctx, cell_layer, "PebbLIFX");
+		menu_cell_basic_header_draw(ctx, cell_layer, "PebblFX");
 	} else if (section_index == menu_section_lights) {
 		menu_cell_basic_header_draw(ctx, cell_layer, "Lights");
 	} else if (section_index == menu_section_tags) {

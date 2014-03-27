@@ -224,7 +224,7 @@ Pebble.addEventListener('appmessage', function(e) {
 });
 
 Pebble.addEventListener('showConfiguration', function() {
-	var uri = 'https://rawgithub.com/Neal/PebbLIFX/master/configuration/index.html?server=' + encodeURIComponent(LIFX.server);
+	var uri = 'https://rawgithub.com/Neal/PebblFX/master/configuration/index.html?server=' + encodeURIComponent(LIFX.server);
 	Pebble.openURL(uri);
 });
 
