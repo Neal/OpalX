@@ -61,31 +61,19 @@ var LIFX = {
 
 	colors: {
 		makePostData: function(hue, saturation, brightness) {
-			return {hue:LIFX.colors.hue.deserialize(hue), saturation:LIFX.colors.saturation.deserialize(saturation), brightness:LIFX.colors.brightness.deserialize(brightness)};
+			return {hue:this.hue.deserialize(hue), saturation:this.saturation.deserialize(saturation), brightness:this.brightness.deserialize(brightness)};
 		},
 		hue: {
-			serialize: function(val) {
-				return parseInt((val / 360) * 100);
-			},
-			deserialize: function(val) {
-				return val * 3.6;
-			}
+			serialize: function(val) { return parseInt((val / 360) * 100); },
+			deserialize: function(val) { return val * 3.6; }
 		},
 		saturation: {
-			serialize: function(val) {
-				return parseInt(val * 100);
-			},
-			deserialize: function(val) {
-				return val / 100;
-			}
+			serialize: function(val) { return parseInt(val * 100); },
+			deserialize: function(val) { return val / 100; }
 		},
 		brightness: {
-			serialize: function(val) {
-				return parseInt(val * 100);
-			},
-			deserialize: function(val) {
-				return val / 100;
-			}
+			serialize: function(val) { return parseInt(val * 100); },
+			deserialize: function(val) { return val / 100; }
 		}
 	},
 
