@@ -22,6 +22,7 @@ enum {
 	KEY_COLOR_H,
 	KEY_COLOR_S,
 	KEY_COLOR_B,
+	KEY_SETTINGS = 100,
 };
 
 enum {
