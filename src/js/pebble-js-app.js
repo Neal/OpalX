@@ -5,6 +5,7 @@ var appMessageQueue = {
 	working: false,
 	clear: function() {
 		this.queue = [];
+		this.working = false;
 	},
 	isEmpty: function() {
 		return this.queue.length === 0;
@@ -12,8 +13,8 @@ var appMessageQueue = {
 	nextMessage: function() {
 		return this.isEmpty() ? {} : this.queue[0];
 	},
-	send: function(obj) {
-		if (obj) this.queue.push(obj);
+	send: function(message) {
+		if (message) this.queue.push(message);
 		if (this.working) return;
 		if (this.queue.length > 0) {
 			this.working = true;
@@ -124,10 +125,7 @@ var LIFX = {
 			var res = JSON.parse(xhr.responseText);
 			console.log(JSON.stringify(res));
 			if (res instanceof Array) {
-				LIFX.lights = [];
-				res.forEach(function(light) {
-					LIFX.lights.push(light);
-				});
+				LIFX.lights = res;
 				LIFX.sendLights();
 				if (LIFX.tags.length === 0) {
 					LIFX.tags = [];
@@ -157,25 +155,25 @@ var LIFX = {
 
 	color: function(hue, saturation, brightness) {
 		var data = JSON.stringify(this.colors.makePostData(hue, saturation, brightness));
-		this.makeAPIRequest('PUT', '/color.json', data, this.handleResponse, this.error);
+		this.makeAPIRequest('PUT', '/color', data, this.handleResponse, this.error);
 		setTimeout(function() { LIFX.refresh(); }, 2000);
 	},
 
 	toggle: function() {
-		this.makeAPIRequest('PUT', '/toggle.json', null, this.handleResponse, this.error);
+		this.makeAPIRequest('PUT', '/toggle', null, this.handleResponse, this.error);
 	},
 
 	on: function() {
-		this.makeAPIRequest('PUT', '/on.json', null, this.handleResponse, this.error);
+		this.makeAPIRequest('PUT', '/on', null, this.handleResponse, this.error);
 	},
 
 	off: function() {
-		this.makeAPIRequest('PUT', '/off.json', null, this.handleResponse, this.error);
+		this.makeAPIRequest('PUT', '/off', null, this.handleResponse, this.error);
 	},
 
 	refresh: function() {
 		this.type = TYPE.ALL;
-		this.makeAPIRequest('GET', '.json', null, this.handleResponse, this.error);
+		this.makeAPIRequest('GET', '', null, this.handleResponse, this.error);
 	},
 
 	makeAPIRequest: function(method, endpoint, data, cb, fb) {
