@@ -134,6 +134,7 @@ var LIFX = {
 					LIFX.tags = [];
 					LIFX.lights.forEach(function(light) {
 						light.tags.forEach(function(tag) {
+							if (tag.substring(0,1) == '_') return;
 							LIFX.tags.push(tag);
 						});
 					});
