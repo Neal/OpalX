@@ -69,22 +69,6 @@ void lightmenu_show(void) {
 	window_stack_push(window, true);
 }
 
-void lightmenu_in_received_handler(DictionaryIterator *iter) {
-	lightlist_in_received_handler(iter);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
-}
-
-void lightmenu_out_sent_handler(DictionaryIterator *sent) {
-}
-
-void lightmenu_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason) {
-}
-
-bool lightmenu_is_on_top() {
-	return window == window_stack_get_top_window();
-}
-
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {

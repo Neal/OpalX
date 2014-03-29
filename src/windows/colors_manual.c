@@ -80,21 +80,6 @@ void colors_manual_show(void) {
 	window_stack_push(window, true);
 }
 
-void colors_manual_in_received_handler(DictionaryIterator *iter) {
-	lightlist_in_received_handler(iter);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
-}
-
-void colors_manual_out_sent_handler(DictionaryIterator *sent) {
-}
-
-void colors_manual_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason) {
-}
-
-bool colors_manual_is_on_top() {
-	return window == window_stack_get_top_window();
-}
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {
