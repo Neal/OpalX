@@ -53,7 +53,7 @@ var METHOD = {
 };
 
 var LIFX = {
-	server: localStorage.getItem('server') || '',
+	server: localStorage.getItem('server') || 'http://lifx-http.local:56780',
 	lights: [],
 	tags: [],
 	type: null,
