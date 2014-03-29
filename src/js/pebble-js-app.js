@@ -96,11 +96,14 @@ var LIFX = {
 	},
 
 	sendLight: function(index) {
-		label = this.lights[index].label ? this.lights[index].label.substring(0,18) : this.lights[index].id;
-		state = this.lights[index].on ? 'ON' : 'OFF';
-		color_h = LIFX.colors.hue.serialize(this.lights[index].color.hue) || 0;
-		color_s = LIFX.colors.saturation.serialize(this.lights[index].color.saturation) || 0;
-		color_b = LIFX.colors.brightness.serialize(this.lights[index].color.brightness) || 0;
+		var label = this.lights[index].label ? this.lights[index].label.substring(0,18) : this.lights[index].id;
+		var state = this.lights[index].on ? 'ON' : 'OFF';
+		var color_h = 0, color_s = 0, color_b = 0;
+		if (this.lights[index].color) {
+			color_h = LIFX.colors.hue.serialize(this.lights[index].color.hue) || 0;
+			color_s = LIFX.colors.saturation.serialize(this.lights[index].color.saturation) || 0;
+			color_b = LIFX.colors.brightness.serialize(this.lights[index].color.brightness) || 0;
+		}
 		appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.DATA, index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 	},
 
