@@ -151,6 +151,11 @@ void lightlist_out_sent_handler(DictionaryIterator *sent) {
 }
 
 void lightlist_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason) {
+	if (error) free(error);
+	error = malloc(sizeof(char) * 65);
+	strncpy(error, "Unable to connect to phone! Make sure the Pebble app is running.", 64);
+	LOG("error: %s", error);
+	menu_layer_reload_data_and_mark_dirty(menu_layer);
 }
 
 bool lightlist_is_on_top() {
