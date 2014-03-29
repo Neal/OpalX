@@ -18,28 +18,16 @@ void appmessage_init(void) {
 }
 
 static void in_received_handler(DictionaryIterator *iter, void *context) {
-	if (lightlist_is_on_top()) {
-		lightlist_in_received_handler(iter);
-	} else if (colors_custom_is_on_top()) {
-		colors_custom_in_received_handler(iter);
-	}
+	lightlist_in_received_handler(iter);
 }
 
 static void in_dropped_handler(AppMessageResult reason, void *context) {
 }
 
 static void out_sent_handler(DictionaryIterator *sent, void *context) {
-	if (lightlist_is_on_top()) {
-		lightlist_out_sent_handler(sent);
-	} else if (colors_custom_is_on_top()) {
-		colors_custom_out_sent_handler(sent);
-	}
+	lightlist_out_sent_handler(sent);
 }
 
 static void out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context) {
-	if (lightlist_is_on_top()) {
-		lightlist_out_failed_handler(failed, reason);
-	} else if (colors_custom_is_on_top()) {
-		colors_custom_out_failed_handler(failed, reason);
-	}
+	lightlist_out_failed_handler(failed, reason);
 }

@@ -80,6 +80,10 @@ void colors_manual_show(void) {
 	window_stack_push(window, true);
 }
 
+void colors_manual_reload_data_and_mark_dirty(void) {
+	menu_layer_reload_data_and_mark_dirty(menu_layer);
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {

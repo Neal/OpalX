@@ -20,6 +20,7 @@ static Light* all_lights;
 static Light* lights;
 static Light* tags;
 
+static void all_menu_layer_reload_data_and_mark_dirty();
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
 static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
@@ -92,7 +93,7 @@ void lightlist_in_received_handler(DictionaryIterator *iter) {
 			error = malloc(dict_find(iter, KEY_LABEL)->length);
 			strncpy(error, dict_find(iter, KEY_LABEL)->value->cstring, dict_find(iter, KEY_LABEL)->length - 1);
 			LOG("error: %s", error);
-			menu_layer_reload_data_and_mark_dirty(menu_layer);
+			all_menu_layer_reload_data_and_mark_dirty(menu_layer);
 			break;
 		}
 		case KEY_TYPE_LIGHT:
@@ -103,7 +104,7 @@ void lightlist_in_received_handler(DictionaryIterator *iter) {
 					lights = malloc(sizeof(Light) * num_lights);
 					break;
 				case KEY_METHOD_END:
-					menu_layer_reload_data_and_mark_dirty(menu_layer);
+					all_menu_layer_reload_data_and_mark_dirty(menu_layer);
 					break;
 				case KEY_METHOD_DATA: {
 					uint8_t index = dict_find(iter, KEY_INDEX)->value->uint8;
@@ -117,7 +118,7 @@ void lightlist_in_received_handler(DictionaryIterator *iter) {
 						.brightness = dict_find(iter, KEY_COLOR_B)->value->uint8,
 					};
 					LOG("added light: %d '%s' '%s'", light->index, light->label, light->state);
-					menu_layer_reload_data_and_mark_dirty(menu_layer);
+					all_menu_layer_reload_data_and_mark_dirty(menu_layer);
 					break;
 				}
 			}
@@ -130,7 +131,7 @@ void lightlist_in_received_handler(DictionaryIterator *iter) {
 					tags = malloc(sizeof(Light) * num_tags);
 					break;
 				case KEY_METHOD_END:
-					menu_layer_reload_data_and_mark_dirty(menu_layer);
+					all_menu_layer_reload_data_and_mark_dirty(menu_layer);
 					break;
 				case KEY_METHOD_DATA: {
 					uint8_t index = dict_find(iter, KEY_INDEX)->value->uint8;
@@ -139,7 +140,7 @@ void lightlist_in_received_handler(DictionaryIterator *iter) {
 					strncpy(tag->label, dict_find(iter, KEY_LABEL)->value->cstring, sizeof(tag->label) - 1);
 					strncpy(tag->state, "", sizeof(tag->state) - 1);
 					LOG("added tag: %d '%s' '%s'", tag->index, tag->label, tag->state);
-					menu_layer_reload_data_and_mark_dirty(menu_layer);
+					all_menu_layer_reload_data_and_mark_dirty(menu_layer);
 					break;
 				}
 			}
@@ -155,7 +156,7 @@ void lightlist_out_failed_handler(DictionaryIterator *failed, AppMessageResult r
 	error = malloc(sizeof(char) * 65);
 	strncpy(error, "Unable to connect to phone! Make sure the Pebble app is running.", 64);
 	LOG("error: %s", error);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
+	all_menu_layer_reload_data_and_mark_dirty(menu_layer);
 }
 
 bool lightlist_is_on_top() {
@@ -185,7 +186,7 @@ Light* light() {
 void light_toggle() {
 	if (selected_type == KEY_TYPE_LIGHT)
 		strncpy(light()->state, "...", sizeof(light()->state) - 1);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
+	all_menu_layer_reload_data_and_mark_dirty();
 	DictionaryIterator *iter;
 	app_message_outbox_begin(&iter);
 	if (iter == NULL)
@@ -211,6 +212,11 @@ void light_update_color() {
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
+
+static void all_menu_layer_reload_data_and_mark_dirty() {
+	menu_layer_reload_data_and_mark_dirty(menu_layer);
+	lightmenu_reload_data_and_mark_dirty();
+}
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {
 	return MENU_NUM_SECTIONS;
