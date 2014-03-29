@@ -302,11 +302,11 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		lightmenu_show();
 	} else if (cell_index->section == menu_section_lights) {
 		selected_index = cell_index->row;
-		selected_type = settings()->tags_first ? KEY_TYPE_TAG : KEY_TYPE_LIGHT;
+		selected_type = KEY_TYPE_LIGHT;
 		lightmenu_show();
 	} else if (cell_index->section == menu_section_tags) {
 		selected_index = cell_index->row;
-		selected_type = settings()->tags_first ? KEY_TYPE_LIGHT : KEY_TYPE_TAG;
+		selected_type = KEY_TYPE_TAG;
 		lightmenu_show();
 	} else if (cell_index->section == MENU_SECTION_OTHER) {
 		settings_show();
@@ -324,11 +324,11 @@ static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *c
 		light_toggle();
 	} else if (cell_index->section == menu_section_lights) {
 		selected_index = cell_index->row;
-		selected_type = settings()->tags_first ? KEY_TYPE_TAG : KEY_TYPE_LIGHT;
+		selected_type = KEY_TYPE_LIGHT;
 		light_toggle();
 	} else if (cell_index->section == menu_section_tags) {
 		selected_index = cell_index->row;
-		selected_type = settings()->tags_first ? KEY_TYPE_LIGHT : KEY_TYPE_TAG;
+		selected_type = KEY_TYPE_TAG;
 		light_toggle();
 	}
 }
