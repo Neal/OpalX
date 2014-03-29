@@ -5,6 +5,7 @@
 #include "lightlist.h"
 #include "colors_custom.h"
 #include "colors_default.h"
+#include "colors_dim.h"
 #include "colors_manual.h"
 
 #define MENU_NUM_SECTIONS 3
@@ -15,13 +16,14 @@
 
 #define MENU_SECTION_ROWS_STATUS 0
 #define MENU_SECTION_ROWS_TOGGLE 1
-#define MENU_SECTION_ROWS_COLORS 2
+#define MENU_SECTION_ROWS_COLORS 3
 
 #define MENU_ROW_TOGGLE 0
 
 #define MENU_ROW_COLORS_CUSTOM 99
 #define MENU_ROW_COLORS_DEFAULT 0
-#define MENU_ROW_COLORS_MANUAL 1
+#define MENU_ROW_COLORS_DIM 1
+#define MENU_ROW_COLORS_MANUAL 2
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
@@ -54,12 +56,14 @@ void lightmenu_init(void) {
 
 	colors_custom_init();
 	colors_default_init();
+	colors_dim_init();
 	colors_manual_init();
 }
 
 void lightmenu_destroy(void) {
 	colors_custom_destroy();
 	colors_default_destroy();
+	colors_dim_destroy();
 	colors_manual_destroy();
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
@@ -72,6 +76,7 @@ void lightmenu_show(void) {
 void lightmenu_reload_data_and_mark_dirty(void) {
 	menu_layer_reload_data_and_mark_dirty(menu_layer);
 	colors_default_reload_data_and_mark_dirty();
+	colors_dim_reload_data_and_mark_dirty();
 	colors_manual_reload_data_and_mark_dirty();
 }
 
@@ -123,7 +128,7 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 }
 
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
-	char label[13] = "";
+	char label[16] = "";
 	switch (cell_index->section) {
 		case MENU_SECTION_TOGGLE:
 			switch (cell_index->row) {
@@ -138,7 +143,10 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
 					strcpy(label, "Custom");
 					break;
 				case MENU_ROW_COLORS_DEFAULT:
-					strcpy(label, "Default");
+					strcpy(label, "Default Presets");
+					break;
+				case MENU_ROW_COLORS_DIM:
+					strcpy(label, "Dim Presets");
 					break;
 				case MENU_ROW_COLORS_MANUAL:
 					strcpy(label, "Manual");
@@ -166,6 +174,9 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 					break;
 				case MENU_ROW_COLORS_DEFAULT:
 					colors_default_show();
+					break;
+				case MENU_ROW_COLORS_DIM:
+					colors_dim_show();
 					break;
 				case MENU_ROW_COLORS_MANUAL:
 					colors_manual_show();
