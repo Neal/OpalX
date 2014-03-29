@@ -65,15 +65,15 @@ var LIFX = {
 			return {hue:this.hue.deserialize(hue), saturation:this.saturation.deserialize(saturation), brightness:this.brightness.deserialize(brightness)};
 		},
 		hue: {
-			serialize: function(val) { return parseInt((val / 360) * 100); },
+			serialize: function(val) { return Math.round((val / 360) * 100); },
 			deserialize: function(val) { return val * 3.6; }
 		},
 		saturation: {
-			serialize: function(val) { return parseInt(val * 100); },
+			serialize: function(val) { return Math.round(val * 100); },
 			deserialize: function(val) { return val / 100; }
 		},
 		brightness: {
-			serialize: function(val) { return parseInt(val * 100); },
+			serialize: function(val) { return Math.round(val * 100); },
 			deserialize: function(val) { return val / 100; }
 		}
 	},
@@ -100,9 +100,9 @@ var LIFX = {
 		var state = this.lights[index].on ? 'ON' : 'OFF';
 		var color_h = 50, color_s = 100, color_b = 100;
 		if (this.lights[index].color) {
-			color_h = LIFX.colors.hue.serialize(this.lights[index].color.hue) || 50;
-			color_s = LIFX.colors.saturation.serialize(this.lights[index].color.saturation) || 100;
-			color_b = LIFX.colors.brightness.serialize(this.lights[index].color.brightness) || 100;
+			color_h = LIFX.colors.hue.serialize(this.lights[index].color.hue);
+			color_s = LIFX.colors.saturation.serialize(this.lights[index].color.saturation);
+			color_b = LIFX.colors.brightness.serialize(this.lights[index].color.brightness);
 		}
 		appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.DATA, index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 	},
