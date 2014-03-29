@@ -22,6 +22,9 @@ static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuI
 static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context);
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context);
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
+static void hue_update(uint8_t value);
+static void hue_decrement_callback(struct NumberWindow *number_window, void *context);
+static void hue_increment_callback(struct NumberWindow *number_window, void *context);
 static void hue_select_callback(struct NumberWindow *number_window, void *context);
 static void saturation_select_callback(struct NumberWindow *number_window, void *context);
 static void brightness_select_callback(struct NumberWindow *number_window, void *context);
@@ -52,10 +55,10 @@ void colors_manual_init(void) {
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
 
-	number_window[HUE] = number_window_create("Hue", (NumberWindowCallbacks) { .selected = hue_select_callback }, NULL);
+	number_window[HUE] = number_window_create("Hue", (NumberWindowCallbacks) { .selected = hue_select_callback, .incremented = hue_increment_callback, .decremented = hue_decrement_callback }, NULL);
 	number_window_set_min(number_window[HUE], 0);
 	number_window_set_max(number_window[HUE], 100);
-	number_window_set_step_size(number_window[HUE], 1);
+	number_window_set_step_size(number_window[HUE], 5);
 
 	number_window[SATURATION] = number_window_create("Saturation", (NumberWindowCallbacks) { .selected = saturation_select_callback }, NULL);
 	number_window_set_min(number_window[SATURATION], 0);
@@ -169,9 +172,21 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 	}
 }
 
-static void hue_select_callback(struct NumberWindow *number_window, void *context) {
-	light()->color.hue = number_window_get_value(number_window);
+static void hue_update(uint8_t value) {
+	light()->color.hue = value;
 	light_update_color();
+}
+
+static void hue_decrement_callback(struct NumberWindow *number_window, void *context) {
+	hue_update(number_window_get_value(number_window));
+}
+
+static void hue_increment_callback(struct NumberWindow *number_window, void *context) {
+	hue_update(number_window_get_value(number_window));
+}
+
+static void hue_select_callback(struct NumberWindow *number_window, void *context) {
+	hue_update(number_window_get_value(number_window));
 	window_stack_pop(true);
 }
 

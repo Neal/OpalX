@@ -98,11 +98,11 @@ var LIFX = {
 	sendLight: function(index) {
 		var label = this.lights[index].label ? this.lights[index].label.substring(0,18) : this.lights[index].id;
 		var state = this.lights[index].on ? 'ON' : 'OFF';
-		var color_h = 0, color_s = 0, color_b = 0;
+		var color_h = 50, color_s = 100, color_b = 100;
 		if (this.lights[index].color) {
-			color_h = LIFX.colors.hue.serialize(this.lights[index].color.hue) || 0;
-			color_s = LIFX.colors.saturation.serialize(this.lights[index].color.saturation) || 0;
-			color_b = LIFX.colors.brightness.serialize(this.lights[index].color.brightness) || 0;
+			color_h = LIFX.colors.hue.serialize(this.lights[index].color.hue) || 50;
+			color_s = LIFX.colors.saturation.serialize(this.lights[index].color.saturation) || 100;
+			color_b = LIFX.colors.brightness.serialize(this.lights[index].color.brightness) || 100;
 		}
 		appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.DATA, index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
 	},

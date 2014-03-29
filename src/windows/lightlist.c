@@ -64,6 +64,11 @@ void lightlist_init(void) {
 	all_lights = malloc(sizeof(Light));
 	all_lights->index = 0;
 	strncpy(all_lights->label, "All Lights", sizeof(all_lights->label) - 1);
+	all_lights->color = (Color) {
+		.hue = 50,
+		.saturation = 100,
+		.brightness = 100,
+	};
 
 	lightlist_update_settings();
 
@@ -139,6 +144,11 @@ void lightlist_in_received_handler(DictionaryIterator *iter) {
 					tag->index = index;
 					strncpy(tag->label, dict_find(iter, KEY_LABEL)->value->cstring, sizeof(tag->label) - 1);
 					strncpy(tag->state, "", sizeof(tag->state) - 1);
+					tag->color = (Color) {
+						.hue = 50,
+						.saturation = 100,
+						.brightness = 100,
+					};
 					LOG("added tag: %d '%s' '%s'", tag->index, tag->label, tag->state);
 					all_menu_layer_reload_data_and_mark_dirty(menu_layer);
 					break;
