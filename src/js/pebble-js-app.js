@@ -177,7 +177,9 @@ var LIFX = {
 	color: function(hue, saturation, brightness) {
 		var data = JSON.stringify(this.colors.makePostData(hue, saturation, brightness));
 		this.makeAPIRequest('PUT', '/color', data, this.handleResponse, this.error);
-		setTimeout(function() { LIFX.refresh(); }, 2000);
+		setTimeout(function() {
+			this.makeAPIRequest('GET', '', null, this.handleResponse, this.error);
+		}, 2000);
 	},
 
 	toggle: function() {
