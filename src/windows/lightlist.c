@@ -145,9 +145,9 @@ void lightlist_in_received_handler(DictionaryIterator *iter) {
 					strncpy(tag->label, dict_find(iter, KEY_LABEL)->value->cstring, sizeof(tag->label) - 1);
 					strncpy(tag->state, "", sizeof(tag->state) - 1);
 					tag->color = (Color) {
-						.hue = 50,
-						.saturation = 100,
-						.brightness = 100,
+						.hue = dict_find(iter, KEY_COLOR_H)->value->uint8,
+						.saturation = dict_find(iter, KEY_COLOR_S)->value->uint8,
+						.brightness = dict_find(iter, KEY_COLOR_B)->value->uint8,
 					};
 					LOG("added tag: %d '%s' '%s'", tag->index, tag->label, tag->state);
 					all_menu_layer_reload_data_and_mark_dirty(menu_layer);

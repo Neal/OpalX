@@ -91,7 +91,7 @@ var LIFX = {
 			case TYPE.LIGHT:
 				return this.lights[this.index].id;
 			case TYPE.TAG:
-				return 'tag:' + this.tags[this.index];
+				return 'tag:' + this.tags[this.index].label;
 		}
 	},
 
@@ -118,7 +118,14 @@ var LIFX = {
 	sendTags: function() {
 		appMessageQueue.send({type:TYPE.TAG, method:METHOD.BEGIN, index:LIFX.tags.length});
 		for (var i = 0; i < LIFX.tags.length; i++) {
-			appMessageQueue.send({type:TYPE.TAG, method:METHOD.DATA, index:i, label:LIFX.tags[i]});
+			var label = this.tags[i].label ? this.tags[i].label.substring(0,18) : '';
+			var color_h = 50, color_s = 100, color_b = 100;
+			if (LIFX.tags[i].color) {
+				color_h = LIFX.colors.hue.serialize(LIFX.tags[i].color.hue);
+				color_s = LIFX.colors.saturation.serialize(LIFX.tags[i].color.saturation);
+				color_b = LIFX.colors.brightness.serialize(LIFX.tags[i].color.brightness);
+			}
+			appMessageQueue.send({type:TYPE.TAG, method:METHOD.DATA, index:i, label:label, color_h:color_h, color_s:color_s, color_b:color_b});
 		}
 		appMessageQueue.send({type:TYPE.TAG, method:METHOD.END});
 	},
@@ -136,11 +143,11 @@ var LIFX = {
 					LIFX.lights.forEach(function(light) {
 						light.tags.forEach(function(tag) {
 							if (tag.substring(0,1) == '_') return;
-							LIFX.tags.push(tag);
+							for (var i = 0; i < LIFX.tags.length; i++) {
+								if (LIFX.tags[i].label == tag) return;
+							}
+							LIFX.tags.push({label:tag, color:light.color});
 						});
-					});
-					LIFX.tags = LIFX.tags.filter(function (e, i, arr) {
-						return arr.lastIndexOf(e) === i;
 					});
 					LIFX.sendTags();
 					break;
