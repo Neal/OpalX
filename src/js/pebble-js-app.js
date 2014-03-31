@@ -127,10 +127,11 @@ var LIFX = {
 		try {
 			var res = JSON.parse(xhr.responseText);
 			console.log(JSON.stringify(res));
-			if (res instanceof Array) {
-				LIFX.lights = res;
-				LIFX.sendLights();
-				if (LIFX.tags.length === 0) {
+			switch (LIFX.type) {
+				case TYPE.ALL: {
+					LIFX.lights = res;
+					LIFX.sendLights();
+					if (LIFX.tags.length > 0) break;
 					LIFX.tags = [];
 					LIFX.lights.forEach(function(light) {
 						light.tags.forEach(function(tag) {
@@ -142,14 +143,30 @@ var LIFX = {
 						return arr.lastIndexOf(e) === i;
 					});
 					LIFX.sendTags();
+					break;
 				}
-			} else {
-				for (var i = 0; i < LIFX.lights.length; i++) {
-					if (LIFX.lights[i].id == res.id) break;
+				case TYPE.TAG: {
+					res.forEach(function(light) {
+						for (var i = 0; i < LIFX.lights.length; i++) {
+							if (LIFX.lights[i].id == light.id) {
+								LIFX.lights[i] = light;
+								LIFX.sendLight(i);
+							}
+						}
+					});
+					appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.END});
+					break;
 				}
-				LIFX.lights[i] = res;
-				LIFX.sendLight(i);
-				appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.END});
+				case TYPE.LIGHT: {
+					for (var i = 0; i < LIFX.lights.length; i++) {
+						if (LIFX.lights[i].id == res.id) {
+							LIFX.lights[i] = res;
+							LIFX.sendLight(i);
+						}
+					}
+					appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.END});
+					break;
+				}
 			}
 		} catch(e) {
 			console.log(JSON.stringify(e));
