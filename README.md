@@ -13,9 +13,8 @@ LIFX remote app for the Pebble Smartwatch. It uses with the [LIFX HTTP API](http
 
 ## Roadmap
 
-* Auto discover the LIFX HTTP API server
 * Custom colors
 
 ## License
 
-PebblFX is available under the MIT license. See the LICENSE file for more info.
+Available under the MIT license. See the LICENSE file for more info.
