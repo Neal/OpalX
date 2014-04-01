@@ -6,7 +6,7 @@
 Settings _settings = {
 	.hide_lights = false,
 	.hide_tags = false,
-	.tags_first = false,
+	.tags_first = true,
 };
 
 void settings_load(void) {

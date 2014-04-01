@@ -247,23 +247,20 @@ static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_
 }
 
 static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
-	if (section_index == MENU_SECTION_ALL) {
-		return MENU_CELL_BASIC_HEADER_HEIGHT;
-	} else if (section_index == menu_section_lights) {
-		return num_lights ? MENU_CELL_BASIC_HEADER_HEIGHT : 0;
+	if (section_index == menu_section_lights) {
+		return num_lights ? MENU_CELL_BASIC_HEADER_HEIGHT : 1;
 	} else if (section_index == menu_section_tags) {
-		return num_tags ? MENU_CELL_BASIC_HEADER_HEIGHT : 0;
+		return num_tags ? MENU_CELL_BASIC_HEADER_HEIGHT : 1;
 	} else if (section_index == MENU_SECTION_OTHER) {
 		return MENU_CELL_BASIC_HEADER_HEIGHT;
-	} else {
-		return 1;
 	}
+	return 1;
 }
 
 static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
 	if (cell_index->section == MENU_SECTION_ALL) {
 		if (error) {
-			return graphics_text_layout_get_content_size(error, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 88 } }, GTextOverflowModeFill, GTextAlignmentLeft).h + 12;
+			return graphics_text_layout_get_content_size(error, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 2 }, .size = { PEBBLE_WIDTH - 8, 88 } }, GTextOverflowModeFill, GTextAlignmentLeft).h + 10;
 		}
 		return 30;
 	} else if (cell_index->section == menu_section_lights) {
@@ -278,9 +275,7 @@ static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuI
 }
 
 static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
-	if (section_index == MENU_SECTION_ALL) {
-		menu_cell_basic_header_draw(ctx, cell_layer, "PebblFX");
-	} else if (section_index == menu_section_lights) {
+	if (section_index == menu_section_lights) {
 		menu_cell_basic_header_draw(ctx, cell_layer, "Lights");
 	} else if (section_index == menu_section_tags) {
 		menu_cell_basic_header_draw(ctx, cell_layer, "Tags");
