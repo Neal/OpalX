@@ -177,7 +177,7 @@ var LIFX = {
 			}
 		} catch(e) {
 			console.log(JSON.stringify(e));
-			appMessageQueue.send({type:TYPE.ERROR, label:'Server error!'});
+			appMessageQueue.send({type:TYPE.ERROR, label:'Error handling response from server!'});
 		}
 	},
 
@@ -213,14 +213,13 @@ var LIFX = {
 		xhr.open(method, url, true);
 		xhr.onload = function() { cb(xhr); };
 		xhr.onerror = function() { fb('Server error!'); };
-		xhr.ontimeout = function() { fb('Connection timed out!'); };
-		xhr.timeout = 10000;
+		xhr.ontimeout = function() { fb('Connection to server timed out!'); };
+		xhr.timeout = 30000;
 		xhr.send(data);
 	}
 };
 
 Pebble.addEventListener('ready', function(e) {
-	if (!LIFX.server) return LIFX.error('No server set');
 	LIFX.refresh();
 });
 
