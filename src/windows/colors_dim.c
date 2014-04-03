@@ -2,7 +2,7 @@
 #include "colors_dim.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "lightlist.h"
+#include "../light.h"
 
 #define MENU_NUM_SECTIONS 2
 
@@ -25,7 +25,6 @@ static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuI
 static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context);
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context);
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
-static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
 
 static Window *window;
 static MenuLayer *menu_layer;
@@ -42,19 +41,18 @@ void colors_dim_init(void) {
 		.draw_header = menu_draw_header_callback,
 		.draw_row = menu_draw_row_callback,
 		.select_click = menu_select_callback,
-		.select_long_click = menu_select_long_callback,
 	});
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
 }
 
-void colors_dim_destroy(void) {
-	menu_layer_destroy_safe(menu_layer);
-	window_destroy_safe(window);
-}
-
 void colors_dim_show(void) {
 	window_stack_push(window, true);
+}
+
+void colors_dim_deinit(void) {
+	menu_layer_destroy_safe(menu_layer);
+	window_destroy_safe(window);
 }
 
 void colors_dim_reload_data_and_mark_dirty(void) {
@@ -165,7 +163,4 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 			}
 			break;
 	}
-}
-
-static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
 }

@@ -1,18 +1,5 @@
 #pragma once
 
-typedef struct {
-	uint8_t hue;
-	uint8_t saturation;
-	uint8_t brightness;
-} Color;
-
-typedef struct {
-	uint8_t index;
-	char label[18];
-	char state[5];
-	Color color;
-} Light;
-
 enum {
 	KEY_TYPE,
 	KEY_METHOD,

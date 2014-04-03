@@ -10,13 +10,8 @@ Settings _settings = {
 };
 
 void settings_load(void) {
-	if (persist_exists(KEY_SETTINGS)) {
-		int res = persist_read_data(KEY_SETTINGS, &_settings, sizeof(_settings));
-		LOG("settings_load: %d", res);
-	}
-	else {
-		LOG("settings_load: No settings.");
-	}
+	int res = persist_exists(KEY_SETTINGS) ? persist_read_data(KEY_SETTINGS, &_settings, sizeof(_settings)) : 0;
+	LOG("settings_load: %d", res);
 }
 
 Settings* settings() {

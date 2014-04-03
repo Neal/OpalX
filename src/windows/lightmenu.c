@@ -2,7 +2,7 @@
 #include "lightmenu.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "lightlist.h"
+#include "../light.h"
 #include "colors_custom.h"
 #include "colors_default.h"
 #include "colors_dim.h"
@@ -32,7 +32,6 @@ static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuI
 static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context);
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context);
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
-static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
 
 static Window *window;
 static MenuLayer *menu_layer;
@@ -49,7 +48,6 @@ void lightmenu_init(void) {
 		.draw_header = menu_draw_header_callback,
 		.draw_row = menu_draw_row_callback,
 		.select_click = menu_select_callback,
-		.select_long_click = menu_select_long_callback,
 	});
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
@@ -60,17 +58,17 @@ void lightmenu_init(void) {
 	colors_manual_init();
 }
 
-void lightmenu_destroy(void) {
-	colors_custom_destroy();
-	colors_default_destroy();
-	colors_dim_destroy();
-	colors_manual_destroy();
-	menu_layer_destroy_safe(menu_layer);
-	window_destroy_safe(window);
-}
-
 void lightmenu_show(void) {
 	window_stack_push(window, true);
+}
+
+void lightmenu_deinit(void) {
+	colors_custom_deinit();
+	colors_default_deinit();
+	colors_dim_deinit();
+	colors_manual_deinit();
+	menu_layer_destroy_safe(menu_layer);
+	window_destroy_safe(window);
 }
 
 void lightmenu_reload_data_and_mark_dirty(void) {
@@ -184,7 +182,4 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 			}
 			break;
 	}
-}
-
-static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
 }

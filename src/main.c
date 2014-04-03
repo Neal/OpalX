@@ -1,17 +1,17 @@
 #include <pebble.h>
 #include "appmessage.h"
 #include "settings.h"
-#include "windows/lightlist.h"
+#include "light.h"
 
 static void init(void) {
 	appmessage_init();
 	settings_load();
-	lightlist_init();
+	light_init();
 }
 
 static void deinit(void) {
 	settings_save();
-	lightlist_destroy();
+	light_deinit();
 }
 
 int main(void) {

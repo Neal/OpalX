@@ -2,7 +2,7 @@
 #include "colors_manual.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "lightlist.h"
+#include "../light.h"
 
 #define MENU_NUM_SECTIONS 2
 
@@ -71,16 +71,16 @@ void colors_manual_init(void) {
 	number_window_set_step_size(number_window[BRIGHTNESS], 1);
 }
 
-void colors_manual_destroy(void) {
+void colors_manual_show(void) {
+	window_stack_push(window, true);
+}
+
+void colors_manual_deinit(void) {
 	for (int i = 0; i < 3; i++) {
 		number_window_destroy(number_window[i]);
 	}
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
-}
-
-void colors_manual_show(void) {
-	window_stack_push(window, true);
 }
 
 void colors_manual_reload_data_and_mark_dirty(void) {

@@ -2,18 +2,13 @@
 #include "colors_custom.h"
 #include "../libs/pebble-assist.h"
 #include "../common.h"
-#include "lightlist.h"
+#include "../light.h"
 
 #define MENU_NUM_SECTIONS 2
 
 #define MENU_SECTION_STATUS 0
 #define MENU_SECTION_CUSTOM 1
 
-#define MAX_CUSTOM_COLORS 20
-
-static Light* custom_colors;
-
-static void refresh();
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
 static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
@@ -21,12 +16,11 @@ static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuI
 static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context);
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context);
 static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
-static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context);
 
 static Window *window;
 static MenuLayer *menu_layer;
 
-static int num_custom_colors = 0;
+static uint8_t num_custom_colors = 0;
 
 void colors_custom_init(void) {
 	window = window_create();
@@ -40,40 +34,21 @@ void colors_custom_init(void) {
 		.draw_header = menu_draw_header_callback,
 		.draw_row = menu_draw_row_callback,
 		.select_click = menu_select_callback,
-		.select_long_click = menu_select_long_callback,
 	});
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	menu_layer_add_to_window(menu_layer, window);
-}
-
-void colors_custom_destroy(void) {
-	menu_layer_destroy_safe(menu_layer);
-	window_destroy_safe(window);
 }
 
 void colors_custom_show(void) {
 	window_stack_push(window, true);
 }
 
-void colors_custom_in_received_handler(DictionaryIterator *iter) {
-	lightlist_in_received_handler(iter);
-	menu_layer_reload_data_and_mark_dirty(menu_layer);
-}
-
-void colors_custom_out_sent_handler(DictionaryIterator *sent) {
-}
-
-void colors_custom_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason) {
-}
-
-bool colors_custom_is_on_top() {
-	return window == window_stack_get_top_window();
+void colors_custom_deinit(void) {
+	menu_layer_destroy_safe(menu_layer);
+	window_destroy_safe(window);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
-
-static void refresh() {
-}
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {
 	return MENU_NUM_SECTIONS;
@@ -123,7 +98,7 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
 			if (num_custom_colors == 0) {
 				graphics_draw_text(ctx, "Loading...", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD), (GRect) { .origin = { 4, 4 }, .size = { PEBBLE_WIDTH - 8, 22 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 			} else {
-				graphics_draw_text(ctx, custom_colors[cell_index->row].label, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 4, 0 }, .size = { PEBBLE_WIDTH - 8, 28 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+				graphics_draw_text(ctx, "None added", fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), (GRect) { .origin = { 4, 0 }, .size = { PEBBLE_WIDTH - 8, 28 } }, GTextOverflowModeFill, GTextAlignmentLeft, NULL);
 			}
 			break;
 	}
@@ -134,8 +109,4 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		case MENU_SECTION_CUSTOM:
 			break;
 	}
-}
-
-static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-	refresh();
 }

@@ -3,7 +3,7 @@
 #include "../libs/pebble-assist.h"
 #include "../common.h"
 #include "../settings.h"
-#include "lightlist.h"
+#include "../light.h"
 
 #define MENU_NUM_SECTIONS 1
 
@@ -47,7 +47,7 @@ void settings_show(void) {
 	window_stack_push(window, true);
 }
 
-void settings_destroy(void) {
+void settings_deinit(void) {
 	menu_layer_destroy_safe(menu_layer);
 	window_destroy_safe(window);
 }
@@ -109,7 +109,7 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 			break;
 	}
 	menu_layer_reload_data(menu_layer);
-	lightlist_update_settings();
+	light_update_settings();
 }
 
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
