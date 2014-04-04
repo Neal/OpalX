@@ -239,7 +239,9 @@ Pebble.addEventListener('appmessage', function(e) {
 });
 
 Pebble.addEventListener('showConfiguration', function() {
-	var uri = 'https://rawgithub.com/Neal/PebblFX/master/configuration/index.html?server=' + encodeURIComponent(LIFX.server);
+	var data = {server:LIFX.server};
+	var uri = 'http://ineal.me/pebble/liphx/configuration/?data=' + encodeURIComponent(JSON.stringify(data));
+	console.log('showing configuration at ' + uri);
 	Pebble.openURL(uri);
 });
 
