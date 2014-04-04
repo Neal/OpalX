@@ -1,4 +1,4 @@
-# LiphX
+# OpalX
 
 LIFX remote app for the Pebble Smartwatch. It uses with the [LIFX HTTP API](https://github.com/chendo/lifx-http), powered by the [LIFX GEM](https://github.com/LIFX/lifx-gem).
 

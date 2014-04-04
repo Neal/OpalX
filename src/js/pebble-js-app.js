@@ -240,7 +240,7 @@ Pebble.addEventListener('appmessage', function(e) {
 
 Pebble.addEventListener('showConfiguration', function() {
 	var data = {server:LIFX.server};
-	var uri = 'http://ineal.me/pebble/liphx/configuration/?data=' + encodeURIComponent(JSON.stringify(data));
+	var uri = 'http://ineal.me/pebble/opalx/configuration/?data=' + encodeURIComponent(JSON.stringify(data));
 	console.log('showing configuration at ' + uri);
 	Pebble.openURL(uri);
 });
