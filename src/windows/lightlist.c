@@ -165,7 +165,7 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
 	if (cell_index->section == MENU_SECTION_ALL) {
 		if (num_lights == 0) {
-			app_message_outbox_send();
+			light_refresh();
 			return;
 		}
 		selected_index = cell_index->row;
@@ -179,5 +179,7 @@ static void menu_select_long_callback(struct MenuLayer *menu_layer, MenuIndex *c
 		selected_index = cell_index->row;
 		selected_type = KEY_TYPE_TAG;
 		light_toggle();
+	} else if (cell_index->section == MENU_SECTION_OTHER) {
+		light_refresh();
 	}
 }

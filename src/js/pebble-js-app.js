@@ -49,7 +49,11 @@ var TYPE = {
 var METHOD = {
 	BEGIN: 0,
 	DATA: 1,
-	END: 2
+	END: 2,
+	REFRESH: 3,
+	TOGGLE: 4,
+	COLOR: 5,
+	READY: 6
 };
 
 var LIFX = {
@@ -225,22 +229,27 @@ Pebble.addEventListener('ready', function(e) {
 
 Pebble.addEventListener('appmessage', function(e) {
 	console.log('AppMessage received: ' + JSON.stringify(e.payload));
-	if (isset(e.payload.index)) {
-		LIFX.type = e.payload.type || null;
-		LIFX.index = e.payload.index || 0;
-		if (isset(e.payload.color_h) && isset(e.payload.color_s) && isset(e.payload.color_b)) {
-			LIFX.color(e.payload.color_h, e.payload.color_s, e.payload.color_b);
-		} else {
+	if (!isset(e.payload.method)) return;
+	switch (e.payload.method) {
+		case METHOD.REFRESH:
+			LIFX.refresh();
+			break;
+		case METHOD.TOGGLE:
+			LIFX.type = e.payload.type;
+			LIFX.index = e.payload.index;
 			LIFX.toggle();
-		}
-	} else {
-		LIFX.refresh();
+			break;
+		case METHOD.COLOR:
+			LIFX.type = e.payload.type;
+			LIFX.index = e.payload.index;
+			LIFX.color(e.payload.color_h, e.payload.color_s, e.payload.color_b);
+			break;
 	}
 });
 
 Pebble.addEventListener('showConfiguration', function() {
 	var data = {server:LIFX.server};
-	var uri = 'http://ineal.me/pebble/opalx/configuration/?data=' + encodeURIComponent(JSON.stringify(data));
+	var uri = 'https://ineal.me/pebble/opalx/configuration/?data=' + encodeURIComponent(JSON.stringify(data));
 	console.log('showing configuration at ' + uri);
 	Pebble.openURL(uri);
 });

@@ -30,6 +30,7 @@ void light_in_received_handler(DictionaryIterator *iter);
 void light_out_sent_handler(DictionaryIterator *sent);
 void light_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason);
 void light_update_settings();
+void light_refresh();
 void light_toggle();
 void light_on();
 void light_off();

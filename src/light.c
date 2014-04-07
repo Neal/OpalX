@@ -5,6 +5,10 @@
 #include "settings.h"
 #include "windows/lightlist.h"
 
+static void timer_callback(void *data);
+static bool heard_from_js = false;
+static AppTimer *timer;
+
 Light* all_lights;
 Light* lights;
 Light* tags;
@@ -17,6 +21,8 @@ uint8_t menu_section_lights;
 uint8_t menu_section_tags;
 
 void light_init(void) {
+	timer = app_timer_register(1000, timer_callback, NULL);
+
 	all_lights = malloc(sizeof(Light));
 	all_lights->index = 0;
 	strncpy(all_lights->label, "All Lights", sizeof(all_lights->label) - 1);
@@ -39,6 +45,7 @@ void light_deinit(void) {
 }
 
 void light_in_received_handler(DictionaryIterator *iter) {
+	heard_from_js = true;
 	if (!dict_find(iter, KEY_TYPE)) return;
 	if (error) {
 		free(error);
@@ -128,14 +135,21 @@ void light_update_settings() {
 	all_menu_layer_reload_data_and_mark_dirty();
 }
 
+void light_refresh() {
+	DictionaryIterator *iter;
+	app_message_outbox_begin(&iter);
+	dict_write_uint8(iter, KEY_METHOD, KEY_METHOD_REFRESH);
+	dict_write_end(iter);
+	app_message_outbox_send();
+}
+
 void light_toggle() {
 	if (selected_type == KEY_TYPE_LIGHT)
 		strncpy(light()->state, "...", sizeof(light()->state) - 1);
 	all_menu_layer_reload_data_and_mark_dirty();
 	DictionaryIterator *iter;
 	app_message_outbox_begin(&iter);
-	if (iter == NULL)
-		return;
+	dict_write_uint8(iter, KEY_METHOD, KEY_METHOD_TOGGLE);
 	dict_write_uint8(iter, KEY_TYPE, selected_type);
 	dict_write_uint8(iter, KEY_INDEX, selected_index);
 	dict_write_end(iter);
@@ -145,8 +159,7 @@ void light_toggle() {
 void light_update_color() {
 	DictionaryIterator *iter;
 	app_message_outbox_begin(&iter);
-	if (iter == NULL)
-		return;
+	dict_write_uint8(iter, KEY_METHOD, KEY_METHOD_COLOR);
 	dict_write_uint8(iter, KEY_TYPE, selected_type);
 	dict_write_uint8(iter, KEY_INDEX, selected_index);
 	dict_write_uint8(iter, KEY_COLOR_H, light()->color.hue);
@@ -170,4 +183,14 @@ Light* light() {
 			return &tags[selected_index];
 	}
 	return NULL;
+}
+
+static void timer_callback(void *data) {
+	if (!heard_from_js) {
+		DictionaryIterator *iter;
+		app_message_outbox_begin(&iter);
+		dict_write_uint8(iter, KEY_METHOD, KEY_METHOD_READY);
+		dict_write_end(iter);
+		app_message_outbox_send();
+	}
 }
