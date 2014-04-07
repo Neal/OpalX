@@ -137,27 +137,27 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		case MENU_SECTION_PRESETS:
 			switch (cell_index->row) {
 				case MENU_ROW_PRESET_100:
-					light()->color = (Color) { light()->color.hue, light()->color.saturation, 100 };
+					light()->color = (Color) { light()->color.hue, light()->color.saturation, 100, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_PRESET_80:
-					light()->color = (Color) { light()->color.hue, light()->color.saturation, 80 };
+					light()->color = (Color) { light()->color.hue, light()->color.saturation, 80, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_PRESET_60:
-					light()->color = (Color) { light()->color.hue, light()->color.saturation, 60 };
+					light()->color = (Color) { light()->color.hue, light()->color.saturation, 60, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_PRESET_40:
-					light()->color = (Color) { light()->color.hue, light()->color.saturation, 40 };
+					light()->color = (Color) { light()->color.hue, light()->color.saturation, 40, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_PRESET_20:
-					light()->color = (Color) { light()->color.hue, light()->color.saturation, 20 };
+					light()->color = (Color) { light()->color.hue, light()->color.saturation, 20, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_PRESET_1:
-					light()->color = (Color) { light()->color.hue, light()->color.saturation, 1 };
+					light()->color = (Color) { light()->color.hue, light()->color.saturation, 1, 3500 };
 					light_update_color();
 					break;
 			}

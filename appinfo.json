@@ -17,7 +17,8 @@
 		"state": 4,
 		"color_h": 5,
 		"color_s": 6,
-		"color_b": 7
+		"color_b": 7,
+		"color_k": 8
 	},
 	"resources": {
 		"media": [

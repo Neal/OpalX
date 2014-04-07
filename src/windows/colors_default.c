@@ -149,39 +149,39 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 		case MENU_SECTION_COLORS:
 			switch (cell_index->row) {
 				case MENU_ROW_COLORS_WHITE:
-					light()->color = (Color) { 0, 0, light()->color.brightness };
+					light()->color = (Color) { 0, 0, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_COLORS_RED:
-					light()->color = (Color) { 0, 100, light()->color.brightness };
+					light()->color = (Color) { 0, 100, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_COLORS_ORANGE:
-					light()->color = (Color) { 10, 100, light()->color.brightness };
+					light()->color = (Color) { 10, 100, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_COLORS_YELLOW:
-					light()->color = (Color) { 15, 100, light()->color.brightness };
+					light()->color = (Color) { 15, 100, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_COLORS_GREEN:
-					light()->color = (Color) { 30, 100, light()->color.brightness };
+					light()->color = (Color) { 30, 100, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_COLORS_TEAL:
-					light()->color = (Color) { 50, 100, light()->color.brightness };
+					light()->color = (Color) { 50, 100, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_COLORS_BLUE:
-					light()->color = (Color) { 65, 100, light()->color.brightness };
+					light()->color = (Color) { 65, 100, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_COLORS_PURPLE:
-					light()->color = (Color) { 80, 100, light()->color.brightness };
+					light()->color = (Color) { 80, 100, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 				case MENU_ROW_COLORS_PINK:
-					light()->color = (Color) { 90, 100, light()->color.brightness };
+					light()->color = (Color) { 90, 100, light()->color.brightness, 3500 };
 					light_update_color();
 					break;
 			}

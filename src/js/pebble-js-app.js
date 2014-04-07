@@ -65,8 +65,8 @@ var LIFX = {
 	index: 0,
 
 	colors: {
-		makePostData: function(hue, saturation, brightness) {
-			return {hue:this.hue.deserialize(hue), saturation:this.saturation.deserialize(saturation), brightness:this.brightness.deserialize(brightness)};
+		makePostData: function(hue, saturation, brightness, kelvin) {
+			return {hue:this.hue.deserialize(hue), saturation:this.saturation.deserialize(saturation), brightness:this.brightness.deserialize(brightness), kelvin:this.kelvin.deserialize(kelvin)};
 		},
 		hue: {
 			serialize: function(val) { return Math.round((val / 360) * 100); },
@@ -79,6 +79,10 @@ var LIFX = {
 		brightness: {
 			serialize: function(val) { return Math.round(val * 100); },
 			deserialize: function(val) { return val / 100; }
+		},
+		kelvin: {
+			serialize: function(val) { return val; },
+			deserialize: function(val) { return val; }
 		}
 	},
 
@@ -102,13 +106,14 @@ var LIFX = {
 	sendLight: function(index) {
 		var label = this.lights[index].label ? this.lights[index].label.substring(0,18) : this.lights[index].id;
 		var state = this.lights[index].on ? 'ON' : 'OFF';
-		var color_h = 50, color_s = 100, color_b = 100;
+		var color_h = 50, color_s = 100, color_b = 100, color_k = 3000;
 		if (this.lights[index].color) {
 			color_h = LIFX.colors.hue.serialize(this.lights[index].color.hue);
 			color_s = LIFX.colors.saturation.serialize(this.lights[index].color.saturation);
 			color_b = LIFX.colors.brightness.serialize(this.lights[index].color.brightness);
+			color_k = LIFX.colors.kelvin.serialize(this.lights[index].color.kelvin);
 		}
-		appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.DATA, index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b});
+		appMessageQueue.send({type:TYPE.LIGHT, method:METHOD.DATA, index:index, label:label, state:state, color_h:color_h, color_s:color_s, color_b:color_b, color_k:color_k});
 	},
 
 	sendLights: function() {
@@ -123,13 +128,14 @@ var LIFX = {
 		appMessageQueue.send({type:TYPE.TAG, method:METHOD.BEGIN, index:LIFX.tags.length});
 		for (var i = 0; i < LIFX.tags.length; i++) {
 			var label = this.tags[i].label ? this.tags[i].label.substring(0,18) : '';
-			var color_h = 50, color_s = 100, color_b = 100;
+			var color_h = 50, color_s = 100, color_b = 100, color_k = 3000;
 			if (LIFX.tags[i].color) {
 				color_h = LIFX.colors.hue.serialize(LIFX.tags[i].color.hue);
 				color_s = LIFX.colors.saturation.serialize(LIFX.tags[i].color.saturation);
 				color_b = LIFX.colors.brightness.serialize(LIFX.tags[i].color.brightness);
+				color_k = LIFX.colors.kelvin.serialize(LIFX.tags[i].color.kelvin);
 			}
-			appMessageQueue.send({type:TYPE.TAG, method:METHOD.DATA, index:i, label:label, color_h:color_h, color_s:color_s, color_b:color_b});
+			appMessageQueue.send({type:TYPE.TAG, method:METHOD.DATA, index:i, label:label, color_h:color_h, color_s:color_s, color_b:color_b, color_k:color_k});
 		}
 		appMessageQueue.send({type:TYPE.TAG, method:METHOD.END});
 	},
@@ -185,8 +191,8 @@ var LIFX = {
 		}
 	},
 
-	color: function(hue, saturation, brightness) {
-		var data = JSON.stringify(this.colors.makePostData(hue, saturation, brightness));
+	color: function(hue, saturation, brightness, kelvin) {
+		var data = JSON.stringify(this.colors.makePostData(hue, saturation, brightness, kelvin));
 		this.makeAPIRequest('PUT', '/color', data, this.handleResponse, this.error);
 		setTimeout(function() {
 			LIFX.makeAPIRequest('GET', '', null, LIFX.handleResponse, LIFX.error);
@@ -242,7 +248,7 @@ Pebble.addEventListener('appmessage', function(e) {
 		case METHOD.COLOR:
 			LIFX.type = e.payload.type;
 			LIFX.index = e.payload.index;
-			LIFX.color(e.payload.color_h, e.payload.color_s, e.payload.color_b);
+			LIFX.color(e.payload.color_h, e.payload.color_s, e.payload.color_b, e.payload.color_k);
 			break;
 	}
 });

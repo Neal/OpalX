@@ -9,11 +9,12 @@
 #define MENU_SECTION_STATUS 0
 #define MENU_SECTION_MANUAL 1
 
-#define MENU_SECTION_ROWS_MANUAL 3
+#define MENU_SECTION_ROWS_MANUAL 4
 
 #define MENU_ROW_MANUAL_HUE 0
 #define MENU_ROW_MANUAL_SATURATION 1
 #define MENU_ROW_MANUAL_BRIGHTNESS 2
+#define MENU_ROW_MANUAL_KELVIN 3
 
 static uint16_t menu_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
 static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
@@ -28,15 +29,17 @@ static void hue_increment_callback(struct NumberWindow *number_window, void *con
 static void hue_select_callback(struct NumberWindow *number_window, void *context);
 static void saturation_select_callback(struct NumberWindow *number_window, void *context);
 static void brightness_select_callback(struct NumberWindow *number_window, void *context);
+static void kelvin_select_callback(struct NumberWindow *number_window, void *context);
 
 static Window *window;
 static MenuLayer *menu_layer;
-static NumberWindow *number_window[3];
+static NumberWindow *number_window[4];
 
 enum {
 	HUE,
 	SATURATION,
 	BRIGHTNESS,
+	KELVIN,
 };
 
 void colors_manual_init(void) {
@@ -69,6 +72,11 @@ void colors_manual_init(void) {
 	number_window_set_min(number_window[BRIGHTNESS], 0);
 	number_window_set_max(number_window[BRIGHTNESS], 100);
 	number_window_set_step_size(number_window[BRIGHTNESS], 1);
+
+	number_window[KELVIN] = number_window_create("Kelvin", (NumberWindowCallbacks) { .selected = kelvin_select_callback }, NULL);
+	number_window_set_min(number_window[KELVIN], 2500);
+	number_window_set_max(number_window[KELVIN], 10000);
+	number_window_set_step_size(number_window[KELVIN], 500);
 }
 
 void colors_manual_show(void) {
@@ -76,7 +84,7 @@ void colors_manual_show(void) {
 }
 
 void colors_manual_deinit(void) {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 4; i++) {
 		number_window_destroy(number_window[i]);
 	}
 	menu_layer_destroy_safe(menu_layer);
@@ -144,6 +152,9 @@ static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuI
 				case MENU_ROW_MANUAL_BRIGHTNESS:
 					strcpy(label, "Brightness");
 					break;
+				case MENU_ROW_MANUAL_KELVIN:
+					strcpy(label, "Kelvin");
+					break;
 			}
 			break;
 	}
@@ -166,6 +177,10 @@ static void menu_select_callback(struct MenuLayer *menu_layer, MenuIndex *cell_i
 				case MENU_ROW_MANUAL_BRIGHTNESS:
 					number_window_set_value(number_window[BRIGHTNESS], light()->color.brightness);
 					window_stack_push((Window*)number_window[BRIGHTNESS], true);
+					break;
+				case MENU_ROW_MANUAL_KELVIN:
+					number_window_set_value(number_window[KELVIN], light()->color.kelvin);
+					window_stack_push((Window*)number_window[KELVIN], true);
 					break;
 			}
 			break;
@@ -198,6 +213,12 @@ static void saturation_select_callback(struct NumberWindow *number_window, void 
 
 static void brightness_select_callback(struct NumberWindow *number_window, void *context) {
 	light()->color.brightness = number_window_get_value(number_window);
+	light_update_color();
+	window_stack_pop(true);
+}
+
+static void kelvin_select_callback(struct NumberWindow *number_window, void *context) {
+	light()->color.kelvin = number_window_get_value(number_window);
 	light_update_color();
 	window_stack_pop(true);
 }

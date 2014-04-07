@@ -9,6 +9,7 @@ enum {
 	KEY_COLOR_H,
 	KEY_COLOR_S,
 	KEY_COLOR_B,
+	KEY_COLOR_K,
 	KEY_SETTINGS = 100,
 };
 

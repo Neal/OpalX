@@ -30,6 +30,7 @@ void light_init(void) {
 		.hue = 50,
 		.saturation = 100,
 		.brightness = 100,
+		.kelvin = 3500,
 	};
 
 	lightlist_init();
@@ -79,8 +80,9 @@ void light_in_received_handler(DictionaryIterator *iter) {
 						.hue = dict_find(iter, KEY_COLOR_H)->value->uint8,
 						.saturation = dict_find(iter, KEY_COLOR_S)->value->uint8,
 						.brightness = dict_find(iter, KEY_COLOR_B)->value->uint8,
+						.kelvin = dict_find(iter, KEY_COLOR_K)->value->uint16,
 					};
-					LOG("light: %d '%s' '%s' %d %d %d", light->index, light->label, light->state, light->color.hue, light->color.saturation, light->color.brightness);
+					LOG("light: %d '%s' '%s' %d %d %d %d", light->index, light->label, light->state, light->color.hue, light->color.saturation, light->color.brightness, light->color.kelvin);
 					all_menu_layer_reload_data_and_mark_dirty();
 					break;
 				}
@@ -106,8 +108,9 @@ void light_in_received_handler(DictionaryIterator *iter) {
 						.hue = dict_find(iter, KEY_COLOR_H)->value->uint8,
 						.saturation = dict_find(iter, KEY_COLOR_S)->value->uint8,
 						.brightness = dict_find(iter, KEY_COLOR_B)->value->uint8,
+						.kelvin = dict_find(iter, KEY_COLOR_K)->value->uint16,
 					};
-					LOG("tag: %d '%s' '%s' %d %d %d", tag->index, tag->label, tag->state, tag->color.hue, tag->color.saturation, tag->color.brightness);
+					LOG("tag: %d '%s' '%s' %d %d %d %d", tag->index, tag->label, tag->state, tag->color.hue, tag->color.saturation, tag->color.brightness, tag->color.kelvin);
 					all_menu_layer_reload_data_and_mark_dirty();
 					break;
 				}
@@ -165,6 +168,7 @@ void light_update_color() {
 	dict_write_uint8(iter, KEY_COLOR_H, light()->color.hue);
 	dict_write_uint8(iter, KEY_COLOR_S, light()->color.saturation);
 	dict_write_uint8(iter, KEY_COLOR_B, light()->color.brightness);
+	dict_write_uint16(iter, KEY_COLOR_K, light()->color.kelvin);
 	dict_write_end(iter);
 	app_message_outbox_send();
 }
