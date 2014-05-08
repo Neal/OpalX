@@ -6,7 +6,6 @@
 #include "windows/lightlist.h"
 
 static void timer_callback(void *data);
-static bool heard_from_js = false;
 static AppTimer *timer;
 
 Light* all_lights;
@@ -46,7 +45,6 @@ void light_deinit(void) {
 }
 
 void light_in_received_handler(DictionaryIterator *iter) {
-	heard_from_js = true;
 	if (!dict_find(iter, KEY_TYPE)) return;
 	if (error) {
 		free(error);
@@ -190,11 +188,9 @@ Light* light() {
 }
 
 static void timer_callback(void *data) {
-	if (!heard_from_js) {
-		DictionaryIterator *iter;
-		app_message_outbox_begin(&iter);
-		dict_write_uint8(iter, KEY_METHOD, KEY_METHOD_READY);
-		dict_write_end(iter);
-		app_message_outbox_send();
-	}
+	DictionaryIterator *iter;
+	app_message_outbox_begin(&iter);
+	dict_write_uint8(iter, KEY_METHOD, KEY_METHOD_READY);
+	dict_write_end(iter);
+	app_message_outbox_send();
 }
