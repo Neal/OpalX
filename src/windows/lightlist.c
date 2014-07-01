@@ -86,13 +86,13 @@ static uint16_t menu_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_
 
 static int16_t menu_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
 	if (section_index == menu_section_lights) {
-		return num_lights ? MENU_CELL_BASIC_HEADER_HEIGHT : 1;
+		return num_lights ? MENU_CELL_BASIC_HEADER_HEIGHT : 0;
 	} else if (section_index == menu_section_tags) {
-		return num_tags ? MENU_CELL_BASIC_HEADER_HEIGHT : 1;
+		return num_tags ? MENU_CELL_BASIC_HEADER_HEIGHT : 0;
 	} else if (section_index == MENU_SECTION_OTHER) {
 		return MENU_CELL_BASIC_HEADER_HEIGHT;
 	}
-	return 1;
+	return 0;
 }
 
 static int16_t menu_get_cell_height_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
